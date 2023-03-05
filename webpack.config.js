@@ -11,12 +11,23 @@ module.exports = {
           {
             test: /\.tsx?$/,
             include: [path.resolve(__dirname, 'src')],
-            use: 'ts-loader',
+            use: [
+                {
+                  loader: 'babel-loader',
+                  options: {
+                    presets: ['solid'],
+                  },
+                },
+                {
+                  loader: 'ts-loader',
+                },
+            ]
           }
         ]
     },
     mode: 'development',
     devServer: {
-        static: path.resolve(__dirname, 'public')
+        static: path.resolve(__dirname, 'public'),
+        port: 3000,
     },
 }
