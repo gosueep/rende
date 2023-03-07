@@ -24,6 +24,9 @@ module.exports = {
       ]
     }]
   },
+  resolve : {
+    extensions : ['.tsx', '.ts', '.js'],
+  },
   mode : 'production',
   devServer : {
     static : path.resolve(__dirname, 'public'),
