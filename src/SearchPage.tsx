@@ -1,3 +1,4 @@
+import { Link } from "@solidjs/router"
 import { Component } from "solid-js"
 
 const SearchPage: Component<{}> = () => {
@@ -42,7 +43,9 @@ const SearchPage: Component<{}> = () => {
 				</div>
 				<div class="flex-1" id="grid-events">
 					<div class="grid grid-flow-row-dense grid-cols-5">
-						<div>1</div>
+						<div>
+							<Link href="/event1">EVENT 1</Link>
+						</div>
 						<div>2</div>
 						<div>3</div>
 						<div>4</div>
