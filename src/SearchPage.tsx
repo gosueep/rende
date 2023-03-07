@@ -1,3 +1,4 @@
+import { Link } from "@solidjs/router"
 import { Component } from "solid-js"
 import { createSignal, createEffect } from 'solid-js';
 
