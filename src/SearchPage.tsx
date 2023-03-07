@@ -1,6 +1,21 @@
 import { Component } from "solid-js"
+import { createSignal, createEffect } from 'solid-js';
+
+interface Event {
+	name: string
+}
 
 const SearchPage: Component<{}> = () => {
+	const [events, setEvents] = createSignal<Event[]>([]);
+
+	createEffect(() => {
+		(async function() {
+			let events_req = await fetch("http://127.0.0.1:3030/get_events");
+			let events_json = await events_req.json();
+			setEvents(events_json);
+		})()
+	  }, [setEvents]);
+
     return <div class="flex flex-row">
 		<div class="flex-none" id="dashboard-left">
 			Dashboard
@@ -42,27 +57,9 @@ const SearchPage: Component<{}> = () => {
 				</div>
 				<div class="flex-1" id="grid-events">
 					<div class="grid grid-flow-row-dense grid-cols-5">
-						<div>1</div>
-						<div>2</div>
-						<div>3</div>
-						<div>4</div>
-						<div>5</div>
-						<div>6</div>
-						<div>7</div>
-						<div>8</div>
-						<div>9</div>
-						<div>10</div>
-						<div>11</div>
-						<div>12</div>
-						<div>13</div>
-						<div>14</div>
-						<div>15</div>
-						<div>16</div>
-						<div>17</div>
-						<div>18</div>
-						<div>19</div>
-						<div>20</div>
-						<div>21</div>
+						{events().map((event) => {
+							return <div>{event.name}</div>
+						})}
 					</div>
 				</div>
 			</div>
