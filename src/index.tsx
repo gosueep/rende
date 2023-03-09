@@ -4,6 +4,7 @@ import { render } from 'solid-js/web';
 
 import SearchPage from './SearchPage';
 import EventPage from './EventPage';
+import DashboardPage from './DashboardPage';
 
 const App: Component<{}> = () => {
 	 return (
@@ -11,6 +12,7 @@ const App: Component<{}> = () => {
 			<Routes>
       			<Route path='/' component={ SearchPage } />
 				<Route path='/event1' component={ EventPage } />
+				<Route path='/dashboard' component={ DashboardPage } />
 			</Routes>
     	</Router>
 	 )
