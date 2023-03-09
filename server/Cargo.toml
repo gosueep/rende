@@ -1,0 +1,12 @@
+[package]
+name = "server"
+version = "0.0.1"
+authors = ["Addison Hart <tgr@tgrcode.com>"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+#tokio = { version = "1", features = ["full"] }
+#warp = { version = "0.3", features = ["compression"] }
+actix-web = { version = "4.2.1", features = ["compress-gzip"] }
+actix-files = "0.6.2"
