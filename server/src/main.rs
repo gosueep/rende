@@ -46,6 +46,9 @@ async fn main() -> std::io::Result<()> {
             )
 			.service(get_events)
 			.service(get_clubs)
+			//.service(web::resource("/").to(|req: HttpRequest| async move {
+			//	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)
+			//}))
 			.service(
 				fs::Files::new("/", "../public")
 					.index_file("index.html")
