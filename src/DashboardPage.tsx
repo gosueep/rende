@@ -1,4 +1,4 @@
-import { Component, createSignal } from "solid-js"
+import { Component, createSignal, onMount } from 'solid-js'
 
 type Club = {
     id: string
@@ -13,7 +13,7 @@ type ClubsListProps = {
 }
 
 const ClubsList = (props: ClubsListProps) => {
-    const [selectedClub, setSelectedClub] = createSignal<Club>({id: '1', name: 'Club 1'})
+    const [selectedClub, setSelectedClub] = createSignal<Club>({id: '1', name: 'test', meetingTime : 'test', description: 'test'})
     
     const handleSelectClub = (club: Club) => {
         setSelectedClub(club)
@@ -70,17 +70,23 @@ const ClubPage = (props: { club?: Club }) => {
 }
 
 const DashboardPage: Component<{}> = () => {
-    const clubs: Club[] = [
-        {id: '1', name: 'Club 1'},
-        {id: '2', name: 'Club 2'},
-        {id: '3', name: 'Club 3'},
-    ]
+    const [clubs, setClubs] = createSignal<Club[]>([])
+    onMount(() => {
+        fetch('http://localhost:3030/get_clubs')
+            .then(response => response.json())
+            .then(clubs => {
+                console.log(clubs)
+                setClubs(clubs)
+            })
+    
+    })
+
     const [selectedClub, setSelectedClub] = createSignal<Club>()
     
     return (
         <div class="min-h-screen flex">
             <div class="w-full max-w-sm flex flex-col">
-                <ClubsList clubs={clubs} onSelectClub={setSelectedClub} />
+                <ClubsList clubs={clubs()} onSelectClub={setSelectedClub} />
             </div>
             <div class="flex-grow flex flex-col bg-gray-300 p-4">
                 <ClubPage club={selectedClub()} />

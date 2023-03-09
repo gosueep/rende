@@ -10,9 +10,9 @@ const App: Component<{}> = () => {
 	 return (
 		<Router>
 			<Routes>
-      			<Route path='/' component={ SearchPage } />
-				<Route path='/event1' component={ EventPage } />
-				<Route path='/dashboard' component={ DashboardPage } />
+      			{/* <Route path='/' component={ SearchPage } /> */}
+				{/* <Route path='/event1' component={ EventPage } /> */}
+				<Route path='/' component={ DashboardPage } />
 			</Routes>
     	</Router>
 	 )
