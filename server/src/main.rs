@@ -1,3 +1,5 @@
+use super::*;
+
 use actix_files as fs;
 use actix_cors::Cors;
 use actix_web::{middleware, App, HttpServer, HttpResponse, Responder, get};
@@ -21,7 +23,6 @@ async fn get_clubs() -> impl Responder {
 
     HttpResponse::Ok()
         .content_type("application/json")
-        .append_header(("Access-Control-Allow-Origin", "127.0.0.1"))
         .body(serde_json::to_string(&clubs).unwrap())
 }
 
@@ -29,7 +30,6 @@ async fn get_clubs() -> impl Responder {
 async fn get_events() -> impl Responder {
 	HttpResponse::Ok()
 	.content_type("application/json")
-	.append_header(("Access-Control-Allow-Origin", "127.0.0.1"))
 	.body("[{\"name\":\"test\"}]")
 }
 
@@ -40,7 +40,7 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Compress::default())
 			.wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:3000")
+                    .allowed_origin("127.0.0.1")
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                     .max_age(3600)
             )
