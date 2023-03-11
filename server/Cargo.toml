@@ -10,3 +10,8 @@ license = "MIT"
 #warp = { version = "0.3", features = ["compression"] }
 actix-web = { version = "4.2.1", features = ["compress-gzip"] }
 actix-files = "0.6.2"
+actix-cors = "0.6.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.94"
+diesel = { version = "2.0.0", features = ["postgres"] }
+dotenvy = "0.15"
