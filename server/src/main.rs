@@ -1,3 +1,7 @@
+mod database;
+
+use database::{start_database};
+
 use actix_files as fs;
 use actix_cors::Cors;
 use actix_web::{middleware, App, HttpServer, HttpResponse, Responder, get, post, web, http};
@@ -24,11 +28,13 @@ struct Club {
 }
 
 #[post("/login")]
-async fn login(info: web::Json<Login>) -> impl Responder {
+async fn login(info: web::Json<Login>, db_conn: web::Data<PgConnection>) -> impl Responder {
 	println!("Received login request: {:?}", info);
     let login = info.into_inner();
-    let success = login.email == "Scott" && login.password == "Scott";
-    let response = LoginResponse { success, user_id: 1 };
+    
+	//Check email and password against database, return user_id if successful
+
+    let response = LoginResponse { success: true, user_id: 1 };
     HttpResponse::Ok().json(response)
 }
 
@@ -40,9 +46,16 @@ async fn get_clubs() -> impl Responder {
         Club { id: "3".to_string(), name: "Club 3".to_string(), meeting_time: "Wednesday 8pm".to_string(), description: "A third club for testing purposes".to_string() },
     ];
 
+	//Return id, name, meeting_time, description, image url
+
     HttpResponse::Ok()
         .content_type("application/json")
         .body(serde_json::to_string(&clubs).unwrap())
+}
+
+#[get("/set_club_images")]
+async fn get_clubs() -> impl Responder {
+	//Allow admin to set image url for each club
 }
 
 #[get("/get_events")]
@@ -54,6 +67,8 @@ async fn get_events() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    std::env::set_var("DATABASE_URL", "postgres://postgres:x6hjwU3tJ2jrC6P@database-1.c8o82ejnfjrp.us-east-2.rds.amazonaws.com:5432/postgres");
+    let db_conn = start_database().await;
 	HttpServer::new(|| {
 		App::new()
 			.wrap(middleware::Compress::default())
@@ -71,6 +86,7 @@ async fn main() -> std::io::Result<()> {
             )
 			.service(get_events)
 			.service(get_clubs)
+			.app_data(web::Data::new(db_conn.clone()))
 			.service(login)
 			//.service(web::resource("/").to(|req: HttpRequest| async move {
 			//	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)

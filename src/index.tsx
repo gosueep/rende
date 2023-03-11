@@ -14,7 +14,7 @@ const App: Component<{}> = () => {
 				<Route path='/' component={ LoginPage } />
       			<Route path='/SearchPage' component={ SearchPage } />
 				{/* <Route path='/event1' component={ EventPage } /> */}
-				{/* <Route path='/' component={ DashboardPage } /> */}
+				<Route path='/' component={ DashboardPage } />
 			</Routes>
     	</Router>
 	 )

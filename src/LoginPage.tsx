@@ -1,5 +1,7 @@
 import { Component, createSignal } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
+import bcrypt from 'bcrypt'
+
 
 
 const LoginPage: Component<{}> = () => {
@@ -11,26 +13,36 @@ const LoginPage: Component<{}> = () => {
   const handleSubmit = (e: Event) => {
     console.log('IS this working?')
     e.preventDefault()
-    fetch('http://localhost:3030/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            email: email(),
-            password: password()
+    const encoder = new TextEncoder()
+    const data = encoder.encode(password())
+
+    crypto.subtle.digest('SHA-256', data)
+        .then(hashBuffer => {
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
         })
-    })
-    .then(response => response.json())
-    .then(response => {
-        if (response.success) {
-            setUserID(response.userID)
-            navigate('/SearchPage')
-        } 
-    })
-    .catch(error => {
-        console.log('Login error: ', error)
-    })
+        .then(hash => 
+                fetch('http://localhost:3030/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email(),
+                        password: hash
+                    })})
+        )
+        .then(response => response.json())
+        .then(response => {
+            if (response.success) {
+                setUserID(response.userID)
+                navigate('/SearchPage')
+            } 
+        })
+        .catch(error => {
+            console.log('Login error: ', error)
+        })
   }
 
   return (
