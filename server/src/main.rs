@@ -1,4 +1,4 @@
-use super::*;
+// use super::*;
 
 use actix_files as fs;
 use actix_cors::Cors;
@@ -32,6 +32,26 @@ async fn get_events() -> impl Responder {
 	.content_type("application/json")
 	.body("[{\"name\":\"test\"}]")
 }
+
+#[get("/get_event/{event_id}")]
+async fn get_eventById(path: web::Path<(String)>) -> impl Responder {
+	let event_id = path.into_inner();
+
+	let eventinfo = vec![
+		{id: "test-UFJKDJFSDF",
+		name: "Test Event",
+		datetime: new Date(Date.now()),
+		location: "Marquez 123",
+		description: "We meeting to plan stuff uhhh :)",
+		attendees: ["Eugin", "NotEugin"],
+		is_recurring: false}
+	];
+
+	HttpResponse::Ok()
+		.content_type("application/json")
+		.body(serde_json::to_string(&eventinfo).unwrap())
+}
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
