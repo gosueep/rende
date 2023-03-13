@@ -30,6 +30,6 @@ module.exports = {
   mode : 'production',
   devServer : {
     static : path.resolve(__dirname, 'public'),
-    port : 3000,
+    port : 9000,
   },
 }
