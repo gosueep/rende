@@ -80,6 +80,15 @@ pub struct Event {
     pub start: NaiveDateTime,
 }
 
+// Serializable structs for JSON transer
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventJson {
+	pub id: i64,
+    pub name: String,
+    pub description: String,
+    pub start: i64,
+}
+
 // An event category, every event can have as many categories as neccesary
 diesel::table! {
     event_category (id) {
@@ -142,14 +151,6 @@ pub struct User {
     pub name: String,
 }
 
-// Serializable structs for JSON transer
-#[derive(Queryable, Serialize, Deserialize)]
-pub struct EventJson {
-    pub name: String,
-    pub description: String,
-    pub start: i64,
-}
-
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct EventResultJson {
     pub events: Vec<EventJson>,
@@ -183,6 +184,7 @@ async fn get_all_events_json(conn: &mut PgConnection) -> Option<String> {
         events: events
             .iter()
             .map(|event| EventJson {
+                id: event.id,
                 name: event.name.clone(),
                 description: event.description_text.clone(),
                 start: event.start.timestamp(),
@@ -191,6 +193,25 @@ async fn get_all_events_json(conn: &mut PgConnection) -> Option<String> {
     };
 
     let json = serde_json::to_string(&events_result);
+    if json.is_err() {
+        return None;
+    }
+
+    Some(json.unwrap())
+}
+
+async fn get_num_rsvps(event_id: i64, conn: &mut PgConnection) -> Option<i32> {
+    // Query 10 events for now
+    let result: Result<Vec<Event>, diesel::result::Error> =
+        event::event_rsvp.filter(event_rsvp::event_id.eq(event_id)).count().get_results(conn);
+    if result.is_err() {
+        return None;
+    }
+    let num_rsvps = result.unwrap();
+
+    let json = serde_json::to_string(&json!({
+        "num_rsvps": num_rsvps
+    }));
     if json.is_err() {
         return None;
     }
