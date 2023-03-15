@@ -194,8 +194,24 @@ pub struct ClubResultJson {
 
 pub fn create_database() -> PgConnection {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    let mut conn = PgConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+
+    // Create tables one by one
+    diesel::sql_query(
+        r#"
+		CREATE TABLE club IF NOT EXISTS {
+			id BIGINT primary key,
+			name VARCHAR(256),
+			description_text VARCHAR(256),
+			description_html VARCHAR(256)
+		}
+	"#,
+    )
+    .execute(&mut conn)
+    .unwrap();
+
+    conn
 }
 
 fn get_all_events(conn: &mut PgConnection) -> Option<Vec<Event>> {
