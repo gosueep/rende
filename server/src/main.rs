@@ -1,10 +1,22 @@
 mod database;
+pub use crate::database::*;
 
 use actix_cors::Cors;
 use actix_files as fs;
-use actix_web::{get, http, middleware, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, http, middleware, post,
+    web::{Bytes, Data, Json, Path},
+    App, Error, HttpResponse, HttpServer, Responder,
+};
+use diesel::{
+    pg::{Pg, PgConnection},
+    IntoSql,
+};
 use dotenvy::dotenv;
+use futures::{future::ok, stream::once};
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::sync::{Arc, Mutex, RwLock};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Login {
@@ -18,16 +30,8 @@ struct LoginResponse {
     user_id: i32,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Club {
-    id: String,
-    name: String,
-    meeting_time: String,
-    description: String,
-}
-
 #[post("/login")]
-async fn login(info: web::Json<Login>, db_conn: web::Data<PgConnection>) -> impl Responder {
+async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     println!("Received login request: {:?}", info);
     let login = info.into_inner();
 
@@ -41,71 +45,76 @@ async fn login(info: web::Json<Login>, db_conn: web::Data<PgConnection>) -> impl
 }
 
 #[get("/get_clubs")]
-async fn get_clubs() -> impl Responder {
-    let clubs = vec![
-        Club {
-            id: "1".to_string(),
-            name: "Club 1".to_string(),
-            meeting_time: "Monday 6pm".to_string(),
-            description: "A club for testing purposes".to_string(),
-        },
-        Club {
-            id: "2".to_string(),
-            name: "Club 2".to_string(),
-            meeting_time: "Tuesday 7pm".to_string(),
-            description: "Another club for testing purposes".to_string(),
-        },
-        Club {
-            id: "3".to_string(),
-            name: "Club 3".to_string(),
-            meeting_time: "Wednesday 8pm".to_string(),
-            description: "A third club for testing purposes".to_string(),
-        },
-    ];
+async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let clubs = get_all_clubs_json(&mut db_conn.into_inner().clone().lock().unwrap());
 
-    //Return id, name, meeting_time, description, image url
-
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .body(serde_json::to_string(&clubs).unwrap())
+    // Return id, name, description and start
+    if clubs.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(clubs.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+    }
 }
 
-#[get("/set_club_images")]
-async fn get_club_images() -> impl Responder {
-    //Allow admin to set image url for each club
+#[get("/club_image/{id}")]
+async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let image_id = path.into_inner();
+    let image = get_club_image(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
+
+    // Return png bytes
+    if image.is_some() {
+        HttpResponse::Ok()
+            .content_type("image/png")
+            .streaming(once(ok::<_, Error>(Bytes::from(image.unwrap()))))
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+    }
 }
 
 #[get("/get_events")]
-async fn get_events() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .body("[{\"name\":\"test\"}]")
+async fn get_events(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let events = get_all_events_json(&mut db_conn.into_inner().clone().lock().unwrap());
+
+    // Return id, name, description and start
+    if events.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(events.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_events failed" })).unwrap())
+    }
 }
 
 #[get("/get_event/{event_id}")]
-async fn get_eventById(path: web::Path<(String)>) -> impl Responder {
+async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let event_id = path.into_inner();
+    let event = get_event_json(event_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
-    let event_info = vec![
-        {id: "test-UFJKDJFSDF",
-        name: "Test Event",
-        datetime: new Date(Date.now()),
-        location: "Marquez 123",
-        description: "We meeting to plan stuff uhhh :)",
-        attendees: ["Eugin", "NotEugin"],
-        is_recurring: false}
-    ];
-
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .body(serde_json::to_string(&event_info).unwrap())
+    // Return id, name, description and start
+    if event.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(event.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_event failed" })).unwrap())
+    }
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-    let db_conn = create_database().await;
-    HttpServer::new(|| {
+    let db_conn = Data::new(Mutex::new(create_database()));
+    HttpServer::new(move || {
         App::new()
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
@@ -120,10 +129,11 @@ async fn main() -> std::io::Result<()> {
                     ])
                     .max_age(3600),
             )
+            .app_data(Data::clone(&db_conn))
             .service(get_events)
             .service(get_clubs)
             .service(get_club_images)
-            .app_data(web::Data::new(db_conn.clone()))
+            .service(get_event)
             .service(login)
             //.service(web::resource("/").to(|req: HttpRequest| async move {
             //	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)
