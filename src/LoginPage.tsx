@@ -37,8 +37,10 @@ const LoginPage: Component<{}> = () => {
         .then(response => {
             if (response.error !== '/login failed') {
                 setUserID(response.id)
-                navigate('/dashboard')
-            } 
+                navigate(`/dashboard/${userID()}`)
+            } else {
+              alert('Incorrect email or password. Please try again.')
+            }
         })
         .catch(error => {
             console.log('Login error: ', error)
