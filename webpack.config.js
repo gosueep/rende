@@ -30,6 +30,7 @@ module.exports = {
   mode : 'production',
   devServer : {
     static : path.resolve(__dirname, 'public'),
+    allowedHosts: "all",
     port : 9000,
   },
 }
