@@ -9,7 +9,6 @@ use std::fmt::Display;
 use std::ptr::null;
 use std::{env, ptr};
 
-// Overarching club (some events are a part of clubs, some aren't)
 diesel::table! {
     club (id) {
         id -> Int8,
@@ -320,6 +319,29 @@ pub fn create_database() -> PgConnection {
     .unwrap();
 
     conn
+}
+
+pub fn login_user_api(email: &str, password: &str, conn: &mut PgConnection) -> Option<String> {
+    // Query for user
+    let result: Result<User, diesel::result::Error> = user::table
+        .filter(user::email.eq(email))
+        .get_result(conn);
+    if result.is_err() {
+        return None;
+    }
+    let user = result.unwrap();
+
+   //Check password without using verify
+    if user.password != password {
+        return None;
+    }
+
+    let json = serde_json::to_string(&json!({ "id": user.id }));
+    if json.is_err() {
+        return None;
+    }
+
+    Some(json.unwrap())
 }
 
 pub fn get_all_events_api(conn: &mut PgConnection) -> Option<String> {
