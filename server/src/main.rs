@@ -133,7 +133,6 @@ async fn get_newest_events(
     }
 }
 
-const MAX_SIZE: usize = 262_144; // max payload size is 256k
 #[post("/post_event")]
 async fn post_event(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let event_id = add_event_api(payload, &mut db_conn.into_inner().clone().lock().unwrap());
@@ -148,6 +147,20 @@ async fn post_event(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl
     }
 }
 
+#[post("/post_club")]
+async fn post_club(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let club_id = add_club_api(payload, &mut db_conn.into_inner().clone().lock().unwrap());
+    if club_id.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(club_id.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/post_club failed" })).unwrap())
+    }
+}
+
 #[post("/clear_events")]
 async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let delete_res = clear_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
@@ -159,7 +172,22 @@ async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> im
     } else {
         HttpResponse::InternalServerError()
             .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/post_event failed" })).unwrap())
+            .body(serde_json::to_string(&json!({ "error": "/clear_events failed" })).unwrap())
+    }
+}
+
+#[post("/clear_clubs")]
+async fn clear_clubs(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let delete_res = clear_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
+
+    if delete_res.is_ok() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "message": "/clear_clubs succeeded" })).unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/clear_clubs failed" })).unwrap())
     }
 }
 
@@ -190,7 +218,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_event)
             .service(get_newest_events)
             .service(post_event)
+            .service(post_club)
             .service(clear_events)
+            .service(clear_clubs)
             .service(login)
             //.service(web::resource("/").to(|req: HttpRequest| async move {
             //	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)

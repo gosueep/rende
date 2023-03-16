@@ -96,7 +96,8 @@ pub struct Event {
 pub struct EventJson {
     pub id: i64,
     pub name: String,
-    pub description: String,
+    pub description_text: String,
+    pub description_html: String,
     pub start: i64,
 }
 
@@ -336,7 +337,8 @@ pub fn get_all_events_api(conn: &mut PgConnection) -> Option<String> {
             .map(|event| EventJson {
                 id: event.id,
                 name: event.name.clone(),
-                description: event.description_text.clone(),
+                description_text: event.description_text.clone(),
+                description_html: event.description_html.clone(),
                 start: event.start.timestamp(),
             })
             .collect(),
@@ -421,7 +423,8 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     let json = serde_json::to_string(&EventJson {
         id: event.id,
         name: event.name.clone(),
-        description: event.description_text.clone(),
+        description_text: event.description_text.clone(),
+        description_html: event.description_html.clone(),
         start: event.start.timestamp(),
     });
     if json.is_err() {
@@ -445,7 +448,8 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
     let json = serde_json::to_string(&EventJson {
         id: event.id,
         name: event.name.clone(),
-        description: event.description_text.clone(),
+        description_text: event.description_text.clone(),
+        description_html: event.description_html.clone(),
         start: event.start.timestamp(),
     });
     if json.is_err() {
@@ -489,8 +493,8 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
         .values((
             event::id.eq(new_id),
             event::name.eq(event_struct.name),
-            event::description_text.eq(event_struct.description.clone()),
-            event::description_html.eq(event_struct.description),
+            event::description_text.eq(event_struct.description_text),
+            event::description_html.eq(event_struct.description_html),
             event::start.eq(time.unwrap()),
         ))
         .returning(event::id)
@@ -504,7 +508,54 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     Some(serde_json::to_string(&json!({ "event_id": event_id })).unwrap())
 }
 
+// Add club with data, return id
+pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
+    let club_struct_res: Result<ClubJson, serde_json::Error> = serde_json::from_str(&data.as_str());
+    if club_struct_res.is_err() {
+        print!("Serde error {:?}\n", club_struct_res.err());
+        return None;
+    }
+    let club_struct = club_struct_res.unwrap();
+
+    let new_id_res: Result<Option<i64>, diesel::result::Error> =
+        club::table.select(dsl::max(club::id)).get_result(conn);
+    if new_id_res.is_err() {
+        print!("Diesel error {:?}\n", new_id_res.err());
+        return None;
+    }
+    let new_id_option = new_id_res.unwrap();
+
+    // Get max + 1 if there are other rows, otherwise return 1
+    let new_id = if new_id_option.is_some() {
+        new_id_option.unwrap() + 1
+    } else {
+        1
+    };
+
+    let result: Result<i64, diesel::result::Error> = diesel::insert_into(club::table)
+        .values((
+            club::id.eq(new_id),
+            club::name.eq(club_struct.name),
+            club::description_text.eq(club_struct.description_text),
+            club::description_html.eq(club_struct.description_html),
+        ))
+        .returning(club::id)
+        .get_result(conn);
+    if result.is_err() {
+        print!("Diesel error {:?}\n", result.err());
+        return None;
+    }
+    let club_id = result.unwrap();
+
+    Some(serde_json::to_string(&json!({ "club_id": club_id })).unwrap())
+}
+
 // Clear all events
 pub fn clear_events_api(conn: &mut PgConnection) -> Result<usize, diesel::result::Error> {
     diesel::delete(event::table).execute(conn)
+}
+
+// Clear all clubs
+pub fn clear_clubs_api(conn: &mut PgConnection) -> Result<usize, diesel::result::Error> {
+    diesel::delete(club::table).execute(conn)
 }
