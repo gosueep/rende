@@ -321,19 +321,9 @@ pub fn create_database() -> PgConnection {
     conn
 }
 
-fn get_all_events(conn: &mut PgConnection) -> Option<Vec<Event>> {
-    let result = event::table.limit(10).get_results::<Event>(conn);
-    if let Ok(events) = result {
-        Some(events)
-    } else {
-        None
-    }
-}
-
-pub fn get_all_events_json(conn: &mut PgConnection) -> Option<String> {
+pub fn get_all_events_api(conn: &mut PgConnection) -> Option<String> {
     // Query 10 events for now
-    let result: Result<Vec<Event>, diesel::result::Error> =
-        event::table.limit(10).get_results(conn);
+    let result: Result<Vec<Event>, diesel::result::Error> = event::table.get_results(conn);
     if result.is_err() {
         print!("Diesel error {:?}\n", result.err());
         return None;
@@ -360,7 +350,7 @@ pub fn get_all_events_json(conn: &mut PgConnection) -> Option<String> {
     Some(json.unwrap())
 }
 
-fn get_num_rsvps_json(event_id: i64, conn: &mut PgConnection) -> Option<String> {
+fn get_num_rsvps_api(event_id: i64, conn: &mut PgConnection) -> Option<String> {
     // Query 10 events for now
     let result: Result<i64, diesel::result::Error> = event_rsvp::table
         .filter(event_rsvp::event_id.eq(event_id))
@@ -379,7 +369,7 @@ fn get_num_rsvps_json(event_id: i64, conn: &mut PgConnection) -> Option<String> 
     Some(json.unwrap())
 }
 
-pub fn get_club_image(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
+pub fn get_club_image_api(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
     // Query for image
     let result: Result<EventImage, diesel::result::Error> = club_image::table
         .filter(club_image::id.eq(id))
@@ -391,7 +381,7 @@ pub fn get_club_image(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
     Some(result.unwrap().png)
 }
 
-pub fn get_all_clubs_json(conn: &mut PgConnection) -> Option<String> {
+pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
     // Query 10 clubs for now
     let result: Result<Vec<Club>, diesel::result::Error> = club::table.limit(10).get_results(conn);
     if result.is_err() {
@@ -419,7 +409,7 @@ pub fn get_all_clubs_json(conn: &mut PgConnection) -> Option<String> {
     Some(json.unwrap())
 }
 
-pub fn get_event_json(id: i64, conn: &mut PgConnection) -> Option<String> {
+pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     // Query 10 events for now
     let result: Result<Event, diesel::result::Error> =
         event::table.filter(event::id.eq(id)).get_result(conn);
@@ -442,7 +432,7 @@ pub fn get_event_json(id: i64, conn: &mut PgConnection) -> Option<String> {
 }
 
 // Query newest events in order
-pub fn get_newest_events_json(num: i64, conn: &mut PgConnection) -> Option<String> {
+pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String> {
     let result: Result<Event, diesel::result::Error> = event::table
         .order(event::start.desc())
         .limit(num)
@@ -466,7 +456,7 @@ pub fn get_newest_events_json(num: i64, conn: &mut PgConnection) -> Option<Strin
 }
 
 // Add event with data, return id
-pub fn add_event_json(data: String, conn: &mut PgConnection) -> Option<String> {
+pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     let event_struct_res: Result<EventJson, serde_json::Error> =
         serde_json::from_str(&data.as_str());
     if event_struct_res.is_err() {

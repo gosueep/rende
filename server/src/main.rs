@@ -46,7 +46,7 @@ async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Re
 
 #[get("/get_clubs")]
 async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let clubs = get_all_clubs_json(&mut db_conn.into_inner().clone().lock().unwrap());
+    let clubs = get_all_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return id, name, description and start
     if clubs.is_some() {
@@ -63,7 +63,7 @@ async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
 #[get("/club_image/{id}")]
 async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let image_id = path.into_inner();
-    let image = get_club_image(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
+    let image = get_club_image_api(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return png bytes
     if image.is_some() {
@@ -79,7 +79,7 @@ async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) 
 
 #[get("/get_events")]
 async fn get_events(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let events = get_all_events_json(&mut db_conn.into_inner().clone().lock().unwrap());
+    let events = get_all_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return id, name, description and start
     if events.is_some() {
@@ -96,7 +96,7 @@ async fn get_events(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
 #[get("/get_event/{event_id}")]
 async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let event_id = path.into_inner();
-    let event = get_event_json(event_id, &mut db_conn.into_inner().clone().lock().unwrap());
+    let event = get_event_api(event_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return id, name, description and start
     if event.is_some() {
@@ -116,7 +116,7 @@ async fn get_newest_events(
     db_conn: Data<Mutex<PgConnection>>,
 ) -> impl Responder {
     let num_events = path.into_inner();
-    let events = get_newest_events_json(
+    let events = get_newest_events_api(
         num_events,
         &mut db_conn.into_inner().clone().lock().unwrap(),
     );
@@ -136,7 +136,7 @@ async fn get_newest_events(
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 #[post("/post_event")]
 async fn post_event(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let event_id = add_event_json(payload, &mut db_conn.into_inner().clone().lock().unwrap());
+    let event_id = add_event_api(payload, &mut db_conn.into_inner().clone().lock().unwrap());
     if event_id.is_some() {
         HttpResponse::Ok()
             .content_type("application/json")
