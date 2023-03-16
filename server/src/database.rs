@@ -1,3 +1,4 @@
+use actix_web::web::{Bytes, BytesMut, Data, Json, Path, Payload};
 use chrono::*;
 use diesel::dsl;
 use diesel::pg::{Pg, PgConnection};
@@ -7,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::fmt::Display;
 use std::ptr::null;
+use std::sync::{Arc, Mutex, RwLock};
 use std::{env, ptr};
 
 diesel::table! {
@@ -429,6 +431,69 @@ pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
     Some(json.unwrap())
 }
 
+pub fn get_full_event_json(event: Event, conn: &mut PgConnection) -> Option<EventFullJson> {
+    let mut full_json = EventFullJson {
+        info: EventJson {
+            id: event.id,
+            name: event.name,
+            description_text: event.description_text,
+            description_html: event.description_html,
+            start: event.start.timestamp_millis(),
+        },
+        images: vec![],
+        categories: vec![],
+        rsvps: vec![],
+    };
+
+    // Get all images for this event
+    let result: Result<Vec<EventImage>, diesel::result::Error> = event_image::table
+        .filter(event_image::event_id.eq(event.id))
+        .order(event_image::index.asc())
+        .get_results(conn);
+    if result.is_err() {
+        return None;
+    }
+    let images = result.unwrap();
+    for image in images {
+        full_json.images.push(EventImageJson {
+            id: image.id,
+            index: image.index,
+        });
+    }
+
+    // Get all categories for this event
+    let result: Result<Vec<EventCategory>, diesel::result::Error> = event_category::table
+        .filter(event_category::event_id.eq(event.id))
+        .get_results(conn);
+    if result.is_err() {
+        return None;
+    }
+    let categories = result.unwrap();
+    for category in categories {
+        full_json.categories.push(EventCategoryJson {
+            id: category.id,
+            category: category.category,
+        });
+    }
+
+    // Get all rsvps for this event
+    let result: Result<Vec<EventRsvp>, diesel::result::Error> = event_rsvp::table
+        .filter(event_rsvp::event_id.eq(event.id))
+        .get_results(conn);
+    if result.is_err() {
+        return None;
+    }
+    let rsvps = result.unwrap();
+    for rsvp in rsvps {
+        full_json.rsvps.push(EventRsvpJson {
+            id: rsvp.id,
+            user_id: rsvp.user_id,
+        });
+    }
+
+    Some(full_json)
+}
+
 pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     // Query 10 events for now
     let result: Result<Event, diesel::result::Error> =
@@ -438,13 +503,12 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     }
     let event = result.unwrap();
 
-    let json = serde_json::to_string(&EventJson {
-        id: event.id,
-        name: event.name.clone(),
-        description_text: event.description_text.clone(),
-        description_html: event.description_html.clone(),
-        start: event.start.timestamp(),
-    });
+    let full_json = get_full_event_json(event, conn);
+    if full_json.is_none() {
+        return None;
+    }
+
+    let json = serde_json::to_string(&full_json.unwrap());
     if json.is_err() {
         return None;
     }
@@ -465,66 +529,12 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
 
     let mut list_json = EventsResultJson { events: vec![] };
     for event in events {
-        let mut full_json = EventFullJson {
-            info: EventJson {
-                id: event.id,
-                name: event.name,
-                description_text: event.description_text,
-                description_html: event.description_html,
-                start: event.start.timestamp_millis(),
-            },
-            images: vec![],
-            categories: vec![],
-            rsvps: vec![],
-        };
-
-        // Get all images for this event
-        let result: Result<Vec<EventImage>, diesel::result::Error> = event_image::table
-            .filter(event_image::event_id.eq(event.id))
-            .order(event_image::index.asc())
-            .get_results(conn);
-        if result.is_err() {
+        let full_json = get_full_event_json(event, conn);
+        if full_json.is_none() {
             return None;
         }
-        let images = result.unwrap();
-        for image in images {
-            full_json.images.push(EventImageJson {
-                id: image.id,
-                index: image.index,
-            });
-        }
 
-        // Get all categories for this event
-        let result: Result<Vec<EventCategory>, diesel::result::Error> = event_category::table
-            .filter(event_category::event_id.eq(event.id))
-            .get_results(conn);
-        if result.is_err() {
-            return None;
-        }
-        let categories = result.unwrap();
-        for category in categories {
-            full_json.categories.push(EventCategoryJson {
-                id: category.id,
-                category: category.category,
-            });
-        }
-
-        // Get all rsvps for this event
-        let result: Result<Vec<EventRsvp>, diesel::result::Error> = event_rsvp::table
-            .filter(event_rsvp::event_id.eq(event.id))
-            .get_results(conn);
-        if result.is_err() {
-            return None;
-        }
-        let rsvps = result.unwrap();
-        for rsvp in rsvps {
-            full_json.rsvps.push(EventRsvpJson {
-                id: rsvp.id,
-                user_id: rsvp.user_id,
-            });
-        }
-
-        list_json.events.push(full_json);
+        list_json.events.push(full_json.unwrap());
     }
 
     let json = serde_json::to_string(&list_json);
