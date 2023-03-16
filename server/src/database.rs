@@ -118,6 +118,12 @@ pub struct EventImage {
     pub png: Vec<u8>,
 }
 
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventImageJson {
+    pub id: i64,
+    pub index: i64,
+}
+
 // An event category, every event can have as many categories as neccesary
 diesel::table! {
     event_category (id) {
@@ -131,6 +137,12 @@ diesel::table! {
 pub struct EventCategory {
     pub id: i64,
     pub event_id: i64,
+    pub category: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventCategoryJson {
+    pub id: i64,
     pub category: String,
 }
 
@@ -148,6 +160,21 @@ pub struct EventRsvp {
     pub id: i64,
     pub event_id: i64,
     pub user_id: i64,
+}
+
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventRsvpJson {
+    pub id: i64,
+    pub user_id: i64,
+}
+
+// JSON storing all event info
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventFullJson {
+    pub info: EventJson,
+    pub images: Vec<EventImageJson>,
+    pub categories: Vec<EventCategoryJson>,
+    pub rsvps: Vec<EventRsvpJson>,
 }
 
 // Variable number of event organizers, some may have more permissions (TODO)
@@ -185,12 +212,12 @@ pub struct User {
 }
 
 #[derive(Queryable, Serialize, Deserialize)]
-pub struct EventResultJson {
-    pub events: Vec<EventJson>,
+pub struct EventsResultJson {
+    pub events: Vec<EventFullJson>,
 }
 
 #[derive(Queryable, Serialize, Deserialize)]
-pub struct ClubResultJson {
+pub struct ClubsResultJson {
     pub clubs: Vec<ClubJson>,
 }
 
@@ -323,50 +350,19 @@ pub fn create_database() -> PgConnection {
 
 pub fn login_user_api(email: &str, password: &str, conn: &mut PgConnection) -> Option<String> {
     // Query for user
-    let result: Result<User, diesel::result::Error> = user::table
-        .filter(user::email.eq(email))
-        .get_result(conn);
+    let result: Result<User, diesel::result::Error> =
+        user::table.filter(user::email.eq(email)).get_result(conn);
     if result.is_err() {
         return None;
     }
     let user = result.unwrap();
 
-   //Check password without using verify
+    //Check password without using verify
     if user.password != password {
         return None;
     }
 
     let json = serde_json::to_string(&json!({ "id": user.id }));
-    if json.is_err() {
-        return None;
-    }
-
-    Some(json.unwrap())
-}
-
-pub fn get_all_events_api(conn: &mut PgConnection) -> Option<String> {
-    // Query 10 events for now
-    let result: Result<Vec<Event>, diesel::result::Error> = event::table.get_results(conn);
-    if result.is_err() {
-        print!("Diesel error {:?}\n", result.err());
-        return None;
-    }
-    let events = result.unwrap();
-
-    let events_result = EventResultJson {
-        events: events
-            .iter()
-            .map(|event| EventJson {
-                id: event.id,
-                name: event.name.clone(),
-                description_text: event.description_text.clone(),
-                description_html: event.description_html.clone(),
-                start: event.start.timestamp(),
-            })
-            .collect(),
-    };
-
-    let json = serde_json::to_string(&events_result);
     if json.is_err() {
         return None;
     }
@@ -413,7 +409,7 @@ pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
     }
     let events = result.unwrap();
 
-    let events_result = ClubResultJson {
+    let events_result = ClubsResultJson {
         clubs: events
             .iter()
             .map(|club| ClubJson {
@@ -458,22 +454,80 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
 
 // Query newest events in order
 pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String> {
-    let result: Result<Event, diesel::result::Error> = event::table
+    let result: Result<Vec<Event>, diesel::result::Error> = event::table
         .order(event::start.desc())
         .limit(num)
-        .get_result(conn);
+        .get_results(conn);
     if result.is_err() {
         return None;
     }
-    let event = result.unwrap();
+    let events = result.unwrap();
 
-    let json = serde_json::to_string(&EventJson {
-        id: event.id,
-        name: event.name.clone(),
-        description_text: event.description_text.clone(),
-        description_html: event.description_html.clone(),
-        start: event.start.timestamp(),
-    });
+    let mut list_json = EventsResultJson { events: vec![] };
+    for event in events {
+        let mut full_json = EventFullJson {
+            info: EventJson {
+                id: event.id,
+                name: event.name,
+                description_text: event.description_text,
+                description_html: event.description_html,
+                start: event.start.timestamp_millis(),
+            },
+            images: vec![],
+            categories: vec![],
+            rsvps: vec![],
+        };
+
+        // Get all images for this event
+        let result: Result<Vec<EventImage>, diesel::result::Error> = event_image::table
+            .filter(event_image::event_id.eq(event.id))
+            .order(event_image::index.asc())
+            .get_results(conn);
+        if result.is_err() {
+            return None;
+        }
+        let images = result.unwrap();
+        for image in images {
+            full_json.images.push(EventImageJson {
+                id: image.id,
+                index: image.index,
+            });
+        }
+
+        // Get all categories for this event
+        let result: Result<Vec<EventCategory>, diesel::result::Error> = event_category::table
+            .filter(event_category::event_id.eq(event.id))
+            .get_results(conn);
+        if result.is_err() {
+            return None;
+        }
+        let categories = result.unwrap();
+        for category in categories {
+            full_json.categories.push(EventCategoryJson {
+                id: category.id,
+                category: category.category,
+            });
+        }
+
+        // Get all rsvps for this event
+        let result: Result<Vec<EventRsvp>, diesel::result::Error> = event_rsvp::table
+            .filter(event_rsvp::event_id.eq(event.id))
+            .get_results(conn);
+        if result.is_err() {
+            return None;
+        }
+        let rsvps = result.unwrap();
+        for rsvp in rsvps {
+            full_json.rsvps.push(EventRsvpJson {
+                id: rsvp.id,
+                user_id: rsvp.user_id,
+            });
+        }
+
+        list_json.events.push(full_json);
+    }
+
+    let json = serde_json::to_string(&list_json);
     if json.is_err() {
         return None;
     }
@@ -530,6 +584,65 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     Some(serde_json::to_string(&json!({ "event_id": event_id })).unwrap())
 }
 
+// Add event image, return id
+pub fn add_event_image_api(
+    event_id: i64,
+    data: Vec<u8>,
+    conn: &mut PgConnection,
+) -> Option<String> {
+    let new_id_res: Result<Option<i64>, diesel::result::Error> = event_image::table
+        .select(dsl::max(event_image::id))
+        .get_result(conn);
+    if new_id_res.is_err() {
+        print!("Diesel error {:?}\n", new_id_res.err());
+        return None;
+    }
+    let new_id_option = new_id_res.unwrap();
+
+    // Get max + 1 if there are other rows, otherwise return 1
+    let new_id = if new_id_option.is_some() {
+        new_id_option.unwrap() + 1
+    } else {
+        1
+    };
+
+    // Determine if an event with this id even exists
+    let num_events_id: Result<i64, diesel::result::Error> = event::table
+        .filter(event::id.eq(event_id))
+        .count()
+        .get_result(conn);
+    if num_events_id.is_err() || num_events_id.unwrap() == 0 {
+        return None;
+    }
+
+    // Get index
+    let event_image_index_res: Result<i64, diesel::result::Error> = event_image::table
+        .filter(event_image::event_id.eq(event_id))
+        .count()
+        .get_result(conn);
+    if event_image_index_res.is_err() {
+        return None;
+    }
+    let event_image_index = event_image_index_res.unwrap();
+
+    let result: Result<i64, diesel::result::Error> = diesel::insert_into(event_image::table)
+        .values((
+            event_image::id.eq(new_id),
+            event_image::event_id.eq(event_id),
+            event_image::index.eq(event_image_index),
+            event_image::png.eq(data),
+        ))
+        .returning(event_image::id)
+        .get_result(conn);
+    if result.is_err() {
+        print!("Diesel error {:?}\n", result.err());
+        return None;
+    }
+    let event_image_id = result.unwrap();
+
+    Some(serde_json::to_string(&json!({ "event_image_id": event_image_id })).unwrap())
+}
+
 // Add club with data, return id
 pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
     let club_struct_res: Result<ClubJson, serde_json::Error> = serde_json::from_str(&data.as_str());
@@ -574,7 +687,21 @@ pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
 
 // Clear all events
 pub fn clear_events_api(conn: &mut PgConnection) -> Result<usize, diesel::result::Error> {
-    diesel::delete(event::table).execute(conn)
+    let err: Result<usize, diesel::result::Error> = diesel::delete(event::table).execute(conn);
+    if err.is_err() {
+        return err;
+    }
+    let err: Result<usize, diesel::result::Error> =
+        diesel::delete(event_image::table).execute(conn);
+    if err.is_err() {
+        return err;
+    }
+    let err: Result<usize, diesel::result::Error> =
+        diesel::delete(event_category::table).execute(conn);
+    if err.is_err() {
+        return err;
+    }
+    diesel::delete(event_rsvp::table).execute(conn)
 }
 
 // Clear all clubs
