@@ -32,16 +32,22 @@ struct LoginResponse {
 
 #[post("/login")]
 async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    println!("Received login request: {:?}", info);
-    let login = info.into_inner();
+    //Build this using login_user_api
+    let login_response = login_user_api(
+        &info.email.clone(),
+        &info.password.clone(),
+        &mut db_conn.into_inner().clone().lock().unwrap(),
+    );
 
-    //Check email and password against database, return user_id if successful
-
-    let response = LoginResponse {
-        success: true,
-        user_id: 1,
-    };
-    HttpResponse::Ok().json(response)
+    if login_response.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(login_response.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/login failed" })).unwrap())
+    }
 }
 
 #[get("/get_clubs")]

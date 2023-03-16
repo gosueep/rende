@@ -16,27 +16,27 @@ const LoginPage: Component<{}> = () => {
     const encoder = new TextEncoder()
     const data = encoder.encode(password())
 
-    crypto.subtle.digest('SHA-256', data)
+    crypto.subtle.digest('SHA-1', data)
         .then(hashBuffer => {
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             return hashHex;
         })
-        .then(hash => 
-                fetch('http://localhost:3030/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email(),
-                        password: hash
-                    })})
-        )
+        .then(hash => {
+          return fetch('http://localhost:3030/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email(),
+                password: hash
+            })})
+        })
         .then(response => response.json())
         .then(response => {
-            if (response.success) {
-                setUserID(response.userID)
+            if (response.error !== '/login failed') {
+                setUserID(response.id)
                 navigate('/SearchPage')
             } 
         })
