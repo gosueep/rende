@@ -19,9 +19,9 @@ const App: Component<{}> = () => {
 	 return (
 		<Router>
 			<Routes>
-      			<Route path='/SearchPage' component={ SearchPage } />
+      			<Route path='/' component={ SearchPage } />
 				<Route path='/event' component={ EventPage } />
-				<Route path='/' component={ LoginPage } />
+				<Route path='/userlogin' component={ LoginPage } />
 				<Route path='/dashboard' component={ DashboardPage } />
 			</Routes>
     	</Router>

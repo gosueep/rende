@@ -37,7 +37,7 @@ const LoginPage: Component<{}> = () => {
         .then(response => {
             if (response.error !== '/login failed') {
                 setUserID(response.id)
-                navigate('/SearchPage')
+                navigate('/dashboard')
             } 
         })
         .catch(error => {
