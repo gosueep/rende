@@ -67,7 +67,7 @@ async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
 }
 
 #[get("/club_image/{id}")]
-async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn get_club_images(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let image_id = path.into_inner();
     let image = get_club_image_api(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
@@ -84,7 +84,7 @@ async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) 
 }
 
 #[get("/get_event/{event_id}")]
-async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn get_event(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let event_id = path.into_inner();
     let event = get_event_api(event_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
@@ -101,10 +101,7 @@ async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> imp
 }
 
 #[get("/get_newest_events/{num_events}")]
-async fn get_newest_events(
-    path: Path<(i64)>,
-    db_conn: Data<Mutex<PgConnection>>,
-) -> impl Responder {
+async fn get_newest_events(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let num_events = path.into_inner();
     let events = get_newest_events_api(
         num_events,
@@ -194,7 +191,7 @@ async fn post_add_event_image(
 }
 
 #[post("/clear_events")]
-async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn clear_events(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let delete_res = clear_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     if delete_res.is_ok() {
@@ -209,7 +206,7 @@ async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> im
 }
 
 #[post("/clear_clubs")]
-async fn clear_clubs(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn clear_clubs(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let delete_res = clear_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     if delete_res.is_ok() {
