@@ -6,7 +6,7 @@ use actix_files as fs;
 use actix_web::{
     get, http, middleware, post,
     web::{Bytes, BytesMut, Data, Json, Path, Payload},
-    App, Error, HttpResponse, HttpServer, Responder,
+    App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use diesel::{
     pg::{Pg, PgConnection},
@@ -67,7 +67,7 @@ async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
 }
 
 #[get("/club_image/{id}")]
-async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn get_club_images(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let image_id = path.into_inner();
     let image = get_club_image_api(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
@@ -83,24 +83,8 @@ async fn get_club_images(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) 
     }
 }
 
-#[get("/get_events")]
-async fn get_events(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let events = get_all_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
-
-    // Return id, name, description and start
-    if events.is_some() {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(events.unwrap())
-    } else {
-        HttpResponse::InternalServerError()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/get_events failed" })).unwrap())
-    }
-}
-
 #[get("/get_event/{event_id}")]
-async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn get_event(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let event_id = path.into_inner();
     let event = get_event_api(event_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
@@ -117,10 +101,7 @@ async fn get_event(path: Path<(i64)>, db_conn: Data<Mutex<PgConnection>>) -> imp
 }
 
 #[get("/get_newest_events/{num_events}")]
-async fn get_newest_events(
-    path: Path<(i64)>,
-    db_conn: Data<Mutex<PgConnection>>,
-) -> impl Responder {
+async fn get_newest_events(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let num_events = path.into_inner();
     let events = get_newest_events_api(
         num_events,
@@ -167,8 +148,50 @@ async fn post_club(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl 
     }
 }
 
+#[post("/post_add_event_image")]
+async fn post_add_event_image(
+    payload: String,
+    db_conn: Data<Mutex<PgConnection>>,
+    request: HttpRequest,
+) -> impl Responder {
+    let req_headers = request.headers();
+    let event_id_header = req_headers.get("Event-Id");
+    let event_id_str: &str = event_id_header.unwrap().to_str().unwrap();
+
+    let event_id = match event_id_str.parse::<i64>() {
+        Ok(n) => n,
+        Err(_) => {
+            return HttpResponse::InternalServerError()
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(
+                        &json!({ "error": "/post_add_event_image failed, Event-Id is invalid" }),
+                    )
+                    .unwrap(),
+                );
+        }
+    };
+
+    let event_image_id = add_event_image_api(
+        event_id,
+        payload.as_bytes().to_vec(),
+        &mut db_conn.into_inner().clone().lock().unwrap(),
+    );
+    if event_image_id.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(event_image_id.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(
+                serde_json::to_string(&json!({ "error": "/post_add_event_image failed" })).unwrap(),
+            )
+    }
+}
+
 #[post("/clear_events")]
-async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn clear_events(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let delete_res = clear_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     if delete_res.is_ok() {
@@ -183,7 +206,7 @@ async fn clear_events(payload: String, db_conn: Data<Mutex<PgConnection>>) -> im
 }
 
 #[post("/clear_clubs")]
-async fn clear_clubs(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn clear_clubs(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let delete_res = clear_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
     if delete_res.is_ok() {
@@ -218,7 +241,6 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .app_data(Data::clone(&db_conn))
-            .service(get_events)
             .service(get_clubs)
             .service(get_club_images)
             .service(get_event)
@@ -227,6 +249,7 @@ async fn main() -> std::io::Result<()> {
             .service(post_club)
             .service(clear_events)
             .service(clear_clubs)
+            .service(post_add_event_image)
             .service(login)
             //.service(web::resource("/").to(|req: HttpRequest| async move {
             //	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)
