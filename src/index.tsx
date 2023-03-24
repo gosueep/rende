@@ -21,8 +21,8 @@ const App: Component<{}> = () => {
 			<Routes>
       			<Route path='/' component={ SearchPage } />
 				<Route path='/event' component={ EventPage } />
-				<Route path='/login' component={ LoginPage } />
-				<Route path='/dashboard' component={ DashboardPage } />
+				<Route path='/userlogin' component={ LoginPage } />
+				<Route path='/dashboard/:id' component={ DashboardPage } />
 			</Routes>
     	</Router>
 	 )

@@ -1,36 +1,38 @@
 import { useParams } from '@solidjs/router';
 import { Component, createSignal, For, onMount } from 'solid-js';
 
-type EventInfo = {
+export type EventInfoType = {
 	id: string,
 	name: string,
 	datetime: Date,
 	location: string,
 	description: string,
 	attendees: string[],
-	is_recurring: boolean
+	is_recurring: boolean,
+	tags: string[]
 }
 
 type eventProps = {
-	eventinfo: EventInfo
+	eventinfo: EventInfoType
 }
 
 
 const EventInfo = (props: any) => {
 // new Promise(resolve =>  
 
-	const [eventinfo, setEventInfo] = createSignal<EventInfo>({
+	const [eventinfo, setEventInfo] = createSignal<EventInfoType>({
 		id: 'test-UFJKDJFSDF',
 		name: 'Test Event',
 		datetime: new Date(Date.now()),
 		location: 'Marquez 123',
 		description: 'We meeting to plan stuff uhhh :)',
 		attendees: ['Eugin', 'NotEugin'],
-		is_recurring: false
+		is_recurring: false,
+		tags: []
 	})
 
 	onMount(() => {
-		fetch('http://localhost:3030/get_clubs')
+		fetch('http://localhost:3030/get_events')
 			.then(response => response.json())
 			.then(events => {
 				console.log(events)
@@ -55,6 +57,9 @@ const EventInfo = (props: any) => {
 							Location: {eventinfo().location}
 						</div>
 						<div>
+							Time: {eventinfo().datetime.toLocaleTimeString([], { weekday: "long", hour: "numeric", minute: "2-digit" })}
+						</div>
+						<div>
 							Info: {eventinfo().description}
 						</div>
 					</div>
@@ -76,7 +81,7 @@ const EventInfo = (props: any) => {
 const EventPage: Component<{}> = () => {
 	const params = useParams();
 	const event_id = params.event_id;
-	const [eventInfo, setEventInfo] = createSignal<EventInfo>();
+	const [eventInfo, setEventInfo] = createSignal<EventInfoType>();
 	onMount(() => {
 		fetch('http://localhost:3030/get_clubs')
 			.then(response => response.json())

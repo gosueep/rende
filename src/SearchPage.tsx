@@ -3,7 +3,8 @@ import { Component } from "solid-js"
 import { createSignal, createEffect } from 'solid-js';
 
 import NavBar from "./NavBar"
-import SearchBar from "./SearchBar";
+import SearchBar from "./SearchBar"
+import EventCard from "./EventCard"
 
 interface Event {
 	name: string
@@ -29,6 +30,8 @@ const SearchPage: Component<{}> = () => {
 			<div class="flex-1" id="content">
 				<div class="flex flex-col">
 					<SearchBar></SearchBar>
+					<EventCard></EventCard>
+					<EventCard></EventCard>
 					<div class="flex-1" id="grid-events">
 						<div class="grid grid-flow-row-dense grid-cols-5">
 							{events().map((event) => {
