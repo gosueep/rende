@@ -7,17 +7,6 @@ env:
 #   parameter-store:
 #     LOGIN_PASSWORD: /CodeBuild/dockerLoginPassword
 
-
-phases:
-  install:
-    commands:
-      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - source $HOME/.cargo/env
-  build:
-    commands:
-      - cargo build --release
-
-
 phases:
   install:
     runtime-versions:
@@ -37,7 +26,6 @@ phases:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - cd server
       - cargo build --release --manifest-path=server/Cargo.toml
   post_build:
     commands:
