@@ -1,0 +1,81 @@
+version: 0.2
+
+# env:
+#   variables:
+#     JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+#   parameter-store:
+#     LOGIN_PASSWORD: /CodeBuild/dockerLoginPassword
+
+
+phases:
+  install:
+    commands:
+      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - source $HOME/.cargo/env
+  build:
+    commands:
+      - cargo build --release
+
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - echo Updating...
+      - apt-get update
+      - echo Installing Rust...
+      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - source $HOME/.cargo/env
+  pre_build:
+    commands:
+      - echo Installing npm Dependencies
+      - npm install
+  build:
+    commands:
+      - echo Entered the build phase...
+      - echo Build started on `date`
+      - npm run build
+      - cd server
+      - cargo build --release
+  post_build:
+    commands:
+      - echo Entered the post_build phase...
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+  - '**/*'
+  # - server/target/release/server*
+  # - appspec.yml
+  discard-paths: yes
+  name: rende-prod-$(date +%Y-%m-%d)
+
+
+# reports:
+#   arn:aws:codebuild:your-region:your-aws-account-id:report-group/report-group-name-1:
+#     files:
+#       - "**/*"
+#     base-directory: 'target/tests/reports'
+#     discard-paths: no
+#   reportGroupCucumberJson:
+#     files:
+#       - 'cucumber/target/cucumber-tests.xml'
+#     discard-paths: yes
+#     file-format: CUCUMBERJSON # default is JUNITXML
+# artifacts:
+#   files:
+#     - target/messageUtil-1.0.jar
+#   discard-paths: yes
+#   secondary-artifacts:
+#     artifact1:
+#       files:
+#         - target/artifact-1.0.jar
+#       discard-paths: yes
+#     artifact2:
+#       files:
+#         - target/artifact-2.0.jar
+#       discard-paths: yes
+# cache:
+#   paths:
+#     - '/root/.m2/**/*'
