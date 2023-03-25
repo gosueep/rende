@@ -24,5 +24,6 @@ jobs:
 
     - name: Build
       run: |
-        npm install --omit=dev
+        npm install
+        npm install @babel/core --save
         npm run build
