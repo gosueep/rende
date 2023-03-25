@@ -38,7 +38,7 @@ phases:
       - echo Build started on `date`
       - npm run build
       - cd server
-      - cargo build --release
+      - cargo build --release --manifest-path=server/Cargo.toml
   post_build:
     commands:
       - echo Entered the post_build phase...
