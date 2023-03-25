@@ -37,7 +37,7 @@ artifacts:
   - '**/*'
   # - server/target/release/server*
   # - appspec.yml
-  discard-paths: yes
+  # discard-paths: yes
   name: rende-prod-$(date +%Y-%m-%d)
 
 
