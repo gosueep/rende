@@ -13,7 +13,7 @@ os: linux
 #   may cause associated deployments to fail.
 files:
   - source: .
-    destination: /home/ubuntu
+    destination: /home/ubuntu/rende
 # # For deployments to Amazon Linux, Ubuntu Server, or RHEL instances,
 # #   you can specify a "permissions" 
 # #   section here that describes special permissions to apply to the files 
