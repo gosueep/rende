@@ -17,10 +17,10 @@ files:
 file_exists_behavior: OVERWRITE
 hooks:
   ApplicationStop:
-    - location: /home/ubuntu/rende/scripts/AppStop.sh
+    - location: scripts/AppStop.sh
       timeout: 30
       runas: root
   ApplicationStart:
-    - location: /home/ubuntu/rende/scripts/AppStart.sh  
+    - location: scripts/AppStart.sh  
       timeout: 30
       runas: root
