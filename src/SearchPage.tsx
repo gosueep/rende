@@ -29,14 +29,21 @@ const SearchPage: Component<{}> = () => {
 			</div> */}
 			<div class="flex-1" id="content">
 				<div class="flex flex-col">
-					<SearchBar></SearchBar>
-					<EventCard></EventCard>
-					<EventCard></EventCard>
-					<div class="flex-1" id="grid-events">
-						<div class="grid grid-flow-row-dense grid-cols-5">
-							{events().map((event) => {
-								return <div>{event.name}</div>
-							})}
+					<div class="grid gap-8 text-neutral-600 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-5">
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<EventCard></EventCard>
+						<div class="flex-1" id="grid-events">
+							<div class="grid grid-flow-row-dense grid-cols-5">
+								{events().map((event) => {
+									return <div>{event.name}</div>
+								})}
+							</div>
 						</div>
 					</div>
 				</div>
