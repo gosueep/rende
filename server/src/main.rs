@@ -67,6 +67,24 @@ async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     }
 }
 
+//Get club organizer by user id
+#[get("/get_club_by_organizer/{user_id}")]
+async fn get_club_by_organizer(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let user_id = path.into_inner();
+    let clubs = get_club_by_organizer_api(user_id, &mut db_conn.into_inner().clone().lock().unwrap());
+
+    // Return id, name, description and start
+    if clubs.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(clubs.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+    }
+}
+
 #[get("/club_image/{id}")]
 async fn get_club_images(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let image_id = path.into_inner();
@@ -243,6 +261,7 @@ async fn main() -> std::io::Result<()> {
             )
             .app_data(Data::clone(&db_conn))
             .service(get_clubs)
+            .service(get_club_by_organizer)
             .service(get_club_images)
             .service(get_event)
             .service(get_newest_events)

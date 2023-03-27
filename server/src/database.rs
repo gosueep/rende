@@ -96,6 +96,7 @@ pub struct Event {
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct EventJson {
     pub id: i64,
+    pub club_id: Option<i64>,
     pub name: String,
     pub description_text: String,
     pub description_html: String,
@@ -405,7 +406,7 @@ pub fn get_club_image_api(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
 
 pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
     // Query 10 clubs for now
-    let result: Result<Vec<Club>, diesel::result::Error> = club::table.limit(10).get_results(conn);
+    let result: Result<Vec<Club>, diesel::result::Error> = club::table.get_results(conn);
     if result.is_err() {
         return None;
     }
@@ -435,6 +436,7 @@ pub fn get_full_event_json(event: Event, conn: &mut PgConnection) -> Option<Even
     let mut full_json = EventFullJson {
         info: EventJson {
             id: event.id,
+            club_id: event.club_id,
             name: event.name,
             description_text: event.description_text,
             description_html: event.description_html,
@@ -516,6 +518,24 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     Some(json.unwrap())
 }
 
+pub fn get_club_by_organizer_api(user_id: i64, conn: &mut PgConnection) -> Option<String> {
+    let result: Result<Vec<ClubOrganizer>, diesel::result::Error> = club_organizer::table
+        .filter(club_organizer::user_id.eq(user_id))
+        .get_results(conn);
+
+    if result.is_err() {
+        return None;
+    }
+    let club_organizer = result.unwrap();
+
+    let json = serde_json::to_string(&json!({ "club": club_organizer[0].club_id}));
+    if json.is_err() {
+        return None;
+    }
+
+    Some(json.unwrap())
+}
+
 // Query newest events in order
 pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String> {
     let result: Result<Vec<Event>, diesel::result::Error> = event::table
@@ -578,6 +598,7 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     let result: Result<i64, diesel::result::Error> = diesel::insert_into(event::table)
         .values((
             event::id.eq(new_id),
+            event::club_id.eq(event_struct.club_id),
             event::name.eq(event_struct.name),
             event::description_text.eq(event_struct.description_text),
             event::description_html.eq(event_struct.description_html),

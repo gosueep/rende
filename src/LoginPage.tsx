@@ -36,8 +36,11 @@ const LoginPage: Component<{}> = () => {
         .then(response => response.json())
         .then(response => {
             if (response.error !== '/login failed') {
+                console.log('ID: ', response.id)
                 setUserID(response.id)
-                navigate(`/dashboard/${userID()}`)
+                global.isLoggedIn = true
+                global.userID = response.id
+                navigate(`/dashboard`)
             } else {
               alert('Incorrect email or password. Please try again.')
             }
