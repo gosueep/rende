@@ -405,7 +405,7 @@ pub fn get_club_image_api(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
 
 pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
     // Query 10 clubs for now
-    let result: Result<Vec<Club>, diesel::result::Error> = club::table.limit(10).get_results(conn);
+    let result: Result<Vec<Club>, diesel::result::Error> = club::table.get_results(conn);
     if result.is_err() {
         return None;
     }
@@ -509,6 +509,24 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
     }
 
     let json = serde_json::to_string(&full_json.unwrap());
+    if json.is_err() {
+        return None;
+    }
+
+    Some(json.unwrap())
+}
+
+pub fn get_club_by_organizer_api(user_id: i64, conn: &mut PgConnection) -> Option<String> {
+    let result: Result<Vec<ClubOrganizer>, diesel::result::Error> = club_organizer::table
+        .filter(club_organizer::user_id.eq(user_id))
+        .get_results(conn);
+
+    if result.is_err() {
+        return None;
+    }
+    let club_organizer = result.unwrap();
+
+    let json = serde_json::to_string(&json!({ "club": club_organizer[0].club_id}));
     if json.is_err() {
         return None;
     }

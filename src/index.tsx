@@ -8,6 +8,13 @@ const EventPage = lazy(() => import ("./EventPage"))
 const DashboardPage  = lazy(() => import("./DashboardPage"))
 const LoginPage = lazy(() => import("./LoginPage"))
 
+declare global {
+	var isLoggedIn: boolean
+	var userID: number
+}
+
+global.isLoggedIn = false
+
 // CONVERTED TO LAZY LOADING, pages only rendered when clicked as opposed to upon startup
 // 	Might not matter at all, so feel free to revert.
 // import SearchPage from './SearchPage'
@@ -16,16 +23,16 @@ const LoginPage = lazy(() => import("./LoginPage"))
 // import LoginPage from './LoginPage'
 
 const App: Component<{}> = () => {
-	 return (
-		<Router>
-			<Routes>
-      			<Route path='/' component={ SearchPage } />
-				<Route path='/event' component={ EventPage } />
-				<Route path='/userlogin' component={ LoginPage } />
-				<Route path='/dashboard/:id' component={ DashboardPage } />
-			</Routes>
-    	</Router>
-	 )
+	return (
+	<Router>
+		<Routes>
+			<Route path='/' component={ SearchPage } />
+			{/* <Route path='/' component={ EventPage } /> */}
+			<Route path='/userlogin' component={ LoginPage } />
+			<Route path='/dashboard' component={ DashboardPage } />
+		</Routes>
+	</Router>
+	)
 };
 
 render(() => <App />, document.getElementById('root') as HTMLElement);
