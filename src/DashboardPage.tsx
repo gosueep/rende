@@ -1,7 +1,7 @@
 import { Component, createSignal, onMount } from 'solid-js';
 
 type Club = {
-  id: string;
+  id: number;
   name: string;
   description_text?: string;
 };
@@ -21,28 +21,36 @@ const ClubPage = (props: { club?: Club }) => {
   );
 };
 
-const EventCreator: Component<{}> = () => {
-  const [eventName, setEventName] = createSignal('');
-  const [eventDescription, setEventDescription] = createSignal('');
+const EventCreator = (props: { clubID?: number }) => {
+	const [eventName, setEventName] = createSignal('');
+	const [eventDescription, setEventDescription] = createSignal('');
+	const [meetingLocation, setMeetingLocation] = createSignal('');
+	const [startTime, setStartTime] = createSignal('');
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: Event) => {
+	e.preventDefault();
     const eventData = {
-	  id: 1,
-      name: eventName(),
-      description: eventDescription(),
-      start: Date.now(),
-    };
+		id: 1,
+		name: eventName(),
+		club_id: props.clubID,
+		description_text: eventDescription(),
+		description_html: meetingLocation(),
+		start: new Date(startTime()).getTime(),
+	  };
+  
 
-    await fetch('http://localhost:3030/post_event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(eventData),
-    });
+	  await fetch('http://localhost:3030/post_event', {
+		  method: 'POST',
+		  headers: {
+			  'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(eventData),
+		});
 
     setEventName('');
     setEventDescription('');
+    setMeetingLocation('');
+    setStartTime('');
   };
 
   return (
@@ -60,7 +68,7 @@ const EventCreator: Component<{}> = () => {
             />
           </label>
         </div>
-        <div class="mb-4">
+		<div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2">
             Event Description
             <textarea
@@ -68,6 +76,32 @@ const EventCreator: Component<{}> = () => {
               value={eventDescription()}
               onInput={(e) =>
                 setEventDescription((e.target as HTMLInputElement).value)
+              }
+            />
+          </label>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2">
+            Meeting Location
+            <input
+              class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="text"
+              value={meetingLocation()}
+              onInput={(e) =>
+                setMeetingLocation((e.target as HTMLInputElement).value)
+              }
+            />
+          </label>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2">
+            Start Time
+            <input
+              class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="datetime-local"
+              value={startTime()}
+              onInput={(e) =>
+                setStartTime((e.target as HTMLInputElement).value)
               }
             />
           </label>
@@ -84,6 +118,8 @@ const EventCreator: Component<{}> = () => {
           onClick={() => {
             setEventName('');
             setEventDescription('');
+            setMeetingLocation('');
+            setStartTime('');
           }}
         >
           Clear
@@ -95,17 +131,18 @@ const EventCreator: Component<{}> = () => {
 
 const DashboardPage: Component<{}> = () => {
   const [club, setClub] = createSignal<Club>();
+  const [clubID, setClubID] = createSignal<number>(0);
+
   onMount(() => {
-    let clubID: string;
     fetch(`http://localhost:3030/get_club_by_organizer/${global.userID}`)
       .then((response) => response.json())
       .then((club) => {
-        clubID = club.club;
+        setClubID(club.club);
         return fetch(`http://localhost:3030/get_clubs`)
 		.then((response) => response.json())
 		.then((clubs) => {
 		  return clubs.clubs.find((club: Club) => {
-			return Number.parseInt(club.id) == Number.parseInt(clubID);
+			return club.id === clubID();
 		  });
 		})
 		.then((club) => {
@@ -128,7 +165,7 @@ return (
 		  <ClubPage club={club()} />
 		</div>
 		<div class="w-full md:w-1/4 p-4">
-		  <EventCreator />
+		  <EventCreator clubID={clubID()}/>
 		</div>
 	  </div>
 	</main>
