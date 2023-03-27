@@ -5,6 +5,7 @@ use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{
     get, http, middleware, post,
+    web,
     web::{Bytes, BytesMut, Data, Json, Path, Payload},
     App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
@@ -259,6 +260,16 @@ async fn main() -> std::io::Result<()> {
                     .index_file("index.html")
                     .show_files_listing(),
             )
+            // .route("/login", web::get().to(login))
+            // .service(
+            //     web::resource("/user/{name}")
+            //         .name("user_detail")
+            //         .guard(guard::Header("content-type", "application/json"))
+            //         .route(web::get().to(HttpResponse::Ok))
+            //         .route(web::put().to(HttpResponse::Ok)),
+            // )
+            // .route("/", web::get().to(|| HttpResponse::Ok().body("/")))
+            // .route("/")
     })
     .bind(("127.0.0.1", 3030))?
     .run()
