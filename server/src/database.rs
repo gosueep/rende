@@ -96,6 +96,7 @@ pub struct Event {
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct EventJson {
     pub id: i64,
+    pub club_id: Option<i64>,
     pub name: String,
     pub description_text: String,
     pub description_html: String,
@@ -435,6 +436,7 @@ pub fn get_full_event_json(event: Event, conn: &mut PgConnection) -> Option<Even
     let mut full_json = EventFullJson {
         info: EventJson {
             id: event.id,
+            club_id: event.club_id,
             name: event.name,
             description_text: event.description_text,
             description_html: event.description_html,
@@ -596,6 +598,7 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     let result: Result<i64, diesel::result::Error> = diesel::insert_into(event::table)
         .values((
             event::id.eq(new_id),
+            event::club_id.eq(event_struct.club_id),
             event::name.eq(event_struct.name),
             event::description_text.eq(event_struct.description_text),
             event::description_html.eq(event_struct.description_html),
