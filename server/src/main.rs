@@ -5,6 +5,7 @@ use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{
     get, http, middleware, post,
+    web,
     web::{Bytes, BytesMut, Data, Json, Path, Payload},
     App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
@@ -53,6 +54,24 @@ async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Re
 #[get("/get_clubs")]
 async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let clubs = get_all_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
+
+    // Return id, name, description and start
+    if clubs.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(clubs.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+    }
+}
+
+//Get club organizer by user id
+#[get("/get_club_by_organizer/{user_id}")]
+async fn get_club_by_organizer(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let user_id = path.into_inner();
+    let clubs = get_club_by_organizer_api(user_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return id, name, description and start
     if clubs.is_some() {
@@ -242,6 +261,7 @@ async fn main() -> std::io::Result<()> {
             )
             .app_data(Data::clone(&db_conn))
             .service(get_clubs)
+            .service(get_club_by_organizer)
             .service(get_club_images)
             .service(get_event)
             .service(get_newest_events)
@@ -259,6 +279,16 @@ async fn main() -> std::io::Result<()> {
                     .index_file("index.html")
                     .show_files_listing(),
             )
+            // .route("/login", web::get().to(login))
+            // .service(
+            //     web::resource("/user/{name}")
+            //         .name("user_detail")
+            //         .guard(guard::Header("content-type", "application/json"))
+            //         .route(web::get().to(HttpResponse::Ok))
+            //         .route(web::put().to(HttpResponse::Ok)),
+            // )
+            // .route("/", web::get().to(|| HttpResponse::Ok().body("/")))
+            // .route("/")
     })
     .bind(("127.0.0.1", 3030))?
     .run()

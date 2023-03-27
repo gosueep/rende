@@ -9,7 +9,7 @@ export type EventInfoType = {
 	description: string,
 	attendees: string[],
 	is_recurring: boolean,
-	tags: string[]
+	tags: string[],
 }
 
 type eventProps = {
