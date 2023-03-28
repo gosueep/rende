@@ -25,7 +25,7 @@ const EventInfo = (props: { event_id: number }) => {
 					<h1>Picture & info</h1>
 					<div>Pic</div>
 					event()?.images.length == 0 ? <p>no image</p> : <a href="">
-						<img class="object-fill" src={"http://localhost:3030/get_event_image/" + event()?.images[0]} />
+						<img class="object-fill" src={"/get_event_image/" + event()?.images[0]} />
 					</a>
 					<div>
 						<div>

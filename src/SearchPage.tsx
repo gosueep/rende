@@ -6,7 +6,9 @@ import NavBar from "./NavBar"
 import SearchBar from "./SearchBar"
 import EventCard from "./EventCard"
 
+import type { EventInfoType, EventType } from "./EventTypes"
 import { fetchEvents, EventListType } from "./EventTypes"
+
 
 const SearchPage: Component<{}> = () => {
 
