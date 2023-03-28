@@ -423,8 +423,45 @@ pub fn login_user_api(email: &str, password_hash: &str, conn: &mut PgConnection)
         )
         .get_result(conn);
     if result.is_err() {
-        // Likely there is no user with these credentials
-        return None;
+        let login_err = result.err().unwrap();
+        if login_err == diesel::NotFound {
+            // Just create account for now, life is too short for this
+            let new_id_res: Result<Option<i64>, diesel::result::Error> =
+                user::table.select(dsl::max(user::id)).get_result(conn);
+            if new_id_res.is_err() {
+                print!("Diesel error {:?}\n", new_id_res.err());
+                return None;
+            }
+            let new_id_option = new_id_res.unwrap();
+
+            // Get max + 1 if there are other rows, otherwise return 1
+            let new_id = if new_id_option.is_some() {
+                new_id_option.unwrap() + 1
+            } else {
+                1
+            };
+
+            let result: Result<i64, diesel::result::Error> = diesel::insert_into(user::table)
+                .values((
+                    user::id.eq(new_id),
+                    user::name.eq(email.clone()),
+                    user::email.eq(email),
+                    user::password_hash.eq(password_hash),
+                ))
+                .returning(user::id)
+                .get_result(conn);
+
+            if result.is_err() {
+                println!("Diesel error {:?}", result.err());
+                return None;
+            }
+            let user_id = result.unwrap();
+
+            return Some(serde_json::to_string(&json!({ "id": user_id })).unwrap());
+        } else {
+            // Another error
+            return None;
+        }
     }
     let user = result.unwrap();
 
