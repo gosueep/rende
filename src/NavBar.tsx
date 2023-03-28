@@ -24,9 +24,6 @@ export default function NavBar() {
                 {<SearchBar></SearchBar>}
             </div>
             <div>
-                <Link href="/SearchPage" class="text-sm px-4 py-2 leading-none text-white hover:text-teal-500 hover:bg-white mt-4 lg:mt-0">
-                    Search
-                </Link>
                 <Link href={global.isLoggedIn? `/dashboard`: '/userlogin'} class="text-sm px-4 py-2 leading-none text-white hover:text-teal-500 hover:bg-white mt-4 lg:mt-0">
                     Post Event
                 </Link>
