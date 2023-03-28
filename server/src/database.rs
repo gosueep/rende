@@ -410,6 +410,15 @@ pub fn create_database() -> PgConnection {
     .execute(&mut conn)
     .unwrap();
 
+    // Add indices
+    diesel::sql_query(
+        r#"
+        CREATE INDEX IF NOT EXISTS idx_event_start ON event(start)
+    "#,
+    )
+    .execute(&mut conn)
+    .unwrap();
+
     conn
 }
 
