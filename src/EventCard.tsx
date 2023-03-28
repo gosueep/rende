@@ -20,7 +20,7 @@ const EventCard = (props: any) => {
     return (
         <div class="max-h-sm min-h-sm rounded overflow-hidden shadow-lg">
             event()?.images.length == 0 ? <p>no image</p> : <a href="">
-                <img class="object-fill" src={"http://localhost:3030/get_event_image/" + event()?.images[0]} />
+                <img class="object-fill" src={"/get_event_image/" + event()?.images[0]} />
             </a>
             <div class="px-6 py-4">
                 <h2>{event()?.info.name}</h2>
@@ -31,7 +31,7 @@ const EventCard = (props: any) => {
                 </p>
             </div>
             <div class="px-6 pt-4 pb-2">
-                <For each={event.categories}>{(tag, i) =>
+                <For each={event()?.categories}>{(tag, i) =>
                     <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 mr-2 mb-2">{tag}</span>
                 }</For>
             </div>

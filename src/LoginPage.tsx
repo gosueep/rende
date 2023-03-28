@@ -23,7 +23,7 @@ const LoginPage: Component<{}> = () => {
         return hashHex;
       })
       .then(hash => {
-        return fetch('http://localhost:3030/login', {
+        return fetch('/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
