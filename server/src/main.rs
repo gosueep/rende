@@ -371,6 +371,7 @@ async fn main() -> std::io::Result<()> {
                 Cors::permissive()
                     .allowed_origin("http://localhost:9000")
                     .allowed_origin("http://localhost:3030")
+                    .allowed_origin("https://rende.fun")
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
