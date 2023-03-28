@@ -1,4 +1,5 @@
 import { Component, createSignal, onMount } from 'solid-js';
+import type { EventInfoType, EventType, LocationType } from "./EventTypes"
 
 type Club = {
   id: number;
@@ -22,30 +23,40 @@ const ClubPage = (props: { club?: Club }) => {
 };
 
 const EventCreator = (props: { clubID?: number }) => {
-	const [eventName, setEventName] = createSignal('');
-	const [eventDescription, setEventDescription] = createSignal('');
-	const [meetingLocation, setMeetingLocation] = createSignal('');
-	const [startTime, setStartTime] = createSignal('');
+  const [eventName, setEventName] = createSignal('');
+  const [eventDescription, setEventDescription] = createSignal('');
+  const [meetingLocation, setMeetingLocation] = createSignal('');
+  const [startTime, setStartTime] = createSignal('');
 
   const handleSubmit = async (e: Event) => {
-	e.preventDefault();
-    const eventData = {
-		id: 1,
-		name: eventName(),
-		club_id: props.clubID,
-		description_text: eventDescription(),
-		description_html: meetingLocation(),
-		start: new Date(startTime()).getTime(),
-	  };
-  
+    e.preventDefault();
 
-	  await fetch('http://localhost:3030/post_event', {
-		  method: 'POST',
-		  headers: {
-			  'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(eventData),
-		});
+    let location: LocationType = await (await fetch('http://localhost:3030/get_or_create_location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        description: meetingLocation(),
+      }),
+    })).json();
+
+
+    await fetch('http://localhost:3030/post_event', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        club_id: props.clubID,
+        location_id: location.id,
+        name: eventName(),
+        description: eventDescription(),
+        start: new Date(startTime()).getTime(),
+        categories: [],
+        is_recurring: false,
+      }),
+    });
 
     setEventName('');
     setEventDescription('');
@@ -68,7 +79,7 @@ const EventCreator = (props: { clubID?: number }) => {
             />
           </label>
         </div>
-		<div class="mb-4">
+        <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2">
             Event Description
             <textarea
@@ -139,43 +150,43 @@ const DashboardPage: Component<{}> = () => {
       .then((club) => {
         setClubID(club.club);
         return fetch(`http://localhost:3030/get_clubs`)
-		.then((response) => response.json())
-		.then((clubs) => {
-		  return clubs.clubs.find((club: Club) => {
-			return club.id === clubID();
-		  });
-		})
-		.then((club) => {
-		  console.log(club);
-		  setClub(club);
-		});
-	});
-});
+          .then((response) => response.json())
+          .then((clubs) => {
+            return clubs.clubs.find((club: Club) => {
+              return club.id === clubID();
+            });
+          })
+          .then((club) => {
+            console.log(club);
+            setClub(club);
+          });
+      });
+  });
 
-return (
-  <div class="bg-white min-h-screen flex flex-col">
-	<header class="bg-blue-600 shadow text-white">
-	  <div class="container mx-auto px-4 py-2">
-		<h1 class="text-3xl font-bold">Dashboard</h1>
-	  </div>
-	</header>
-	<main class="flex-grow container mx-auto py-8">
-	  <div class="flex flex-wrap -mx-4">
-		<div class="w-full md:w-3/4 p-4">
-		  <ClubPage club={club()} />
-		</div>
-		<div class="w-full md:w-1/4 p-4">
-		  <EventCreator clubID={clubID()}/>
-		</div>
-	  </div>
-	</main>
-	<footer class="bg-gray-200 mt-auto">
-	  <div class="container mx-auto px-4 py-2 text-center">
-		&copy; 2023 SolidJS Example Project
-	  </div>
-	</footer>
-  </div>
-);
+  return (
+    <div class="bg-white min-h-screen flex flex-col">
+      <header class="bg-blue-600 shadow text-white">
+        <div class="container mx-auto px-4 py-2">
+          <h1 class="text-3xl font-bold">Dashboard</h1>
+        </div>
+      </header>
+      <main class="flex-grow container mx-auto py-8">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full md:w-3/4 p-4">
+            <ClubPage club={club()} />
+          </div>
+          <div class="w-full md:w-1/4 p-4">
+            <EventCreator clubID={clubID()} />
+          </div>
+        </div>
+      </main>
+      <footer class="bg-gray-200 mt-auto">
+        <div class="container mx-auto px-4 py-2 text-center">
+          &copy; 2023 SolidJS Example Project
+        </div>
+      </footer>
+    </div>
+  );
 };
 
 export default DashboardPage;

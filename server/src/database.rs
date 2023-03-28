@@ -36,6 +36,12 @@ pub struct ClubJson {
     pub description_html: String,
 }
 
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct PostClubJson {
+    pub name: String,
+    pub description: String,
+}
+
 // Variable number of club images
 diesel::table! {
     club_image (id) {
@@ -75,10 +81,12 @@ diesel::table! {
     event (id) {
         id -> Int8,
         club_id -> Nullable<Int8>,
+        location_id -> Int8,
         name -> Varchar,
         description_text -> Varchar,
         description_html -> Varchar,
         start -> Timestamp,
+        is_recurring -> Bool,
     }
 }
 
@@ -86,10 +94,12 @@ diesel::table! {
 pub struct Event {
     pub id: i64,
     pub club_id: Option<i64>,
+    pub location_id: i64,
     pub name: String,
     pub description_text: String,
     pub description_html: String,
     pub start: NaiveDateTime,
+    pub is_recurring: bool,
 }
 
 // Serializable structs for JSON transer
@@ -97,10 +107,12 @@ pub struct Event {
 pub struct EventJson {
     pub id: i64,
     pub club_id: Option<i64>,
+    pub location_id: i64,
     pub name: String,
     pub description_text: String,
     pub description_html: String,
     pub start: i64,
+    pub is_recurring: bool,
 }
 
 // Variable number of event images
@@ -180,6 +192,18 @@ pub struct EventFullJson {
     pub rsvps: Vec<EventRsvpJson>,
 }
 
+// JSON used for posting event
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct EventPostJson {
+    pub club_id: Option<i64>,
+    pub location_id: i64,
+    pub name: String,
+    pub description: String,
+    pub start: i64,
+    pub categories: Vec<String>,
+    pub is_recurring: bool,
+}
+
 // Variable number of event organizers, some may have more permissions (TODO)
 diesel::table! {
     event_organizer (id) {
@@ -202,7 +226,7 @@ diesel::table! {
         id -> Int8,
         name -> Varchar,
         email -> Varchar,
-        password -> Varchar,
+        password_hash -> Varchar,
     }
 }
 
@@ -212,6 +236,31 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password: String,
+}
+
+// Locations
+diesel::table! {
+    location (id) {
+        id -> Int8,
+        description -> Varchar,
+    }
+}
+
+#[derive(Queryable)]
+pub struct Location {
+    pub id: i64,
+    pub description: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct LocationJson {
+    pub id: i64,
+    pub description: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize)]
+pub struct LocationPostJson {
+    pub description: String,
 }
 
 #[derive(Queryable, Serialize, Deserialize)]
@@ -270,10 +319,12 @@ pub fn create_database() -> PgConnection {
 		CREATE TABLE IF NOT EXISTS event (
 			id BIGINT primary key,
 			club_id BIGINT,
+            location_id BIGINT,
 			name VARCHAR(256),
 			description_text VARCHAR(256),
 			description_html VARCHAR(256),
-			start TIMESTAMP
+			start TIMESTAMP,
+            is_recurring BOOLEAN
 		)
 	"#,
     )
@@ -341,9 +392,20 @@ pub fn create_database() -> PgConnection {
 			id BIGINT primary key,
 			name VARCHAR(256),
 			email VARCHAR(256),
-			password VARCHAR(256)
+			password_hash VARCHAR(256)
 		)
 	"#,
+    )
+    .execute(&mut conn)
+    .unwrap();
+    diesel::sql_query(
+        r#"
+        CREATE TABLE IF NOT EXISTS location (
+            id BIGINT primary key,
+            description VARCHAR(256),
+            UNIQUE(description)
+        )
+    "#,
     )
     .execute(&mut conn)
     .unwrap();
@@ -351,26 +413,22 @@ pub fn create_database() -> PgConnection {
     conn
 }
 
-pub fn login_user_api(email: &str, password: &str, conn: &mut PgConnection) -> Option<String> {
-    // Query for user
-    let result: Result<User, diesel::result::Error> =
-        user::table.filter(user::email.eq(email)).get_result(conn);
+pub fn login_user_api(email: &str, password_hash: &str, conn: &mut PgConnection) -> Option<String> {
+    // Look for user with these credentials
+    let result: Result<User, diesel::result::Error> = user::table
+        .filter(
+            user::email
+                .eq(email)
+                .and(user::password_hash.eq(password_hash)),
+        )
+        .get_result(conn);
     if result.is_err() {
+        // Likely there is no user with these credentials
         return None;
     }
     let user = result.unwrap();
 
-    //Check password without using verify
-    if user.password != password {
-        return None;
-    }
-
-    let json = serde_json::to_string(&json!({ "id": user.id }));
-    if json.is_err() {
-        return None;
-    }
-
-    Some(json.unwrap())
+    Some(serde_json::to_string(&json!({ "id": user.id })).unwrap())
 }
 
 fn get_num_rsvps_api(event_id: i64, conn: &mut PgConnection) -> Option<String> {
@@ -394,8 +452,20 @@ fn get_num_rsvps_api(event_id: i64, conn: &mut PgConnection) -> Option<String> {
 
 pub fn get_club_image_api(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
     // Query for image
-    let result: Result<EventImage, diesel::result::Error> = club_image::table
+    let result: Result<ClubImage, diesel::result::Error> = club_image::table
         .filter(club_image::id.eq(id))
+        .get_result(conn);
+    if result.is_err() {
+        return None;
+    }
+
+    Some(result.unwrap().png)
+}
+
+pub fn get_event_image_api(id: i64, conn: &mut PgConnection) -> Option<Vec<u8>> {
+    // Query for image
+    let result: Result<EventImage, diesel::result::Error> = event_image::table
+        .filter(event_image::id.eq(id))
         .get_result(conn);
     if result.is_err() {
         return None;
@@ -437,10 +507,12 @@ pub fn get_full_event_json(event: Event, conn: &mut PgConnection) -> Option<Even
         info: EventJson {
             id: event.id,
             club_id: event.club_id,
+            location_id: event.location_id,
             name: event.name,
             description_text: event.description_text,
             description_html: event.description_html,
             start: event.start.timestamp_millis(),
+            is_recurring: event.is_recurring,
         },
         images: vec![],
         categories: vec![],
@@ -567,7 +639,7 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
 
 // Add event with data, return id
 pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
-    let event_struct_res: Result<EventJson, serde_json::Error> =
+    let event_struct_res: Result<EventPostJson, serde_json::Error> =
         serde_json::from_str(&data.as_str());
     if event_struct_res.is_err() {
         print!("Serde error {:?}\n", event_struct_res.err());
@@ -575,6 +647,7 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     }
     let event_struct = event_struct_res.unwrap();
 
+    // Get current time
     let time = NaiveDateTime::from_timestamp_millis(event_struct.start);
     if time.is_none() {
         return None;
@@ -595,14 +668,17 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
         1
     };
 
+    // Insert event itself
     let result: Result<i64, diesel::result::Error> = diesel::insert_into(event::table)
         .values((
             event::id.eq(new_id),
             event::club_id.eq(event_struct.club_id),
+            event::location_id.eq(event_struct.location_id),
             event::name.eq(event_struct.name),
-            event::description_text.eq(event_struct.description_text),
-            event::description_html.eq(event_struct.description_html),
+            event::description_text.eq(event_struct.description.clone()),
+            event::description_html.eq(event_struct.description),
             event::start.eq(time.unwrap()),
+            event::is_recurring.eq(event_struct.is_recurring),
         ))
         .returning(event::id)
         .get_result(conn);
@@ -612,7 +688,94 @@ pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
     }
     let event_id = result.unwrap();
 
+    // Insert all categories
+    for category in event_struct.categories {
+        let new_id_res: Result<Option<i64>, diesel::result::Error> = event_category::table
+            .select(dsl::max(event_category::id))
+            .get_result(conn);
+        if new_id_res.is_err() {
+            print!("Diesel error {:?}\n", new_id_res.err());
+            return None;
+        }
+        let new_id_option = new_id_res.unwrap();
+
+        // Get max + 1 if there are other rows, otherwise return 1
+        let new_id = if new_id_option.is_some() {
+            new_id_option.unwrap() + 1
+        } else {
+            1
+        };
+
+        let result: Result<usize, diesel::result::Error> =
+            diesel::insert_into(event_category::table)
+                .values((
+                    event_category::id.eq(new_id),
+                    event_category::event_id.eq(event_id),
+                    event_category::category.eq(category),
+                ))
+                .execute(conn);
+        if result.is_err() {
+            print!("Diesel error {:?}\n", result.err());
+            return None;
+        }
+    }
+
     Some(serde_json::to_string(&json!({ "event_id": event_id })).unwrap())
+}
+
+// Add club image, return id
+pub fn add_club_image_api(club_id: i64, data: Vec<u8>, conn: &mut PgConnection) -> Option<String> {
+    let new_id_res: Result<Option<i64>, diesel::result::Error> = club_image::table
+        .select(dsl::max(club_image::id))
+        .get_result(conn);
+    if new_id_res.is_err() {
+        print!("Diesel error {:?}\n", new_id_res.err());
+        return None;
+    }
+    let new_id_option = new_id_res.unwrap();
+
+    // Get max + 1 if there are other rows, otherwise return 1
+    let new_id = if new_id_option.is_some() {
+        new_id_option.unwrap() + 1
+    } else {
+        1
+    };
+
+    // Determine if an club with this id even exists
+    let num_clubs_id: Result<i64, diesel::result::Error> = club::table
+        .filter(club::id.eq(club_id))
+        .count()
+        .get_result(conn);
+    if num_clubs_id.is_err() || num_clubs_id.unwrap() == 0 {
+        return None;
+    }
+
+    // Get index
+    let club_image_index_res: Result<i64, diesel::result::Error> = club_image::table
+        .filter(club_image::club_id.eq(club_id))
+        .count()
+        .get_result(conn);
+    if club_image_index_res.is_err() {
+        return None;
+    }
+    let club_image_index = club_image_index_res.unwrap();
+
+    let result: Result<i64, diesel::result::Error> = diesel::insert_into(club_image::table)
+        .values((
+            club_image::id.eq(new_id),
+            club_image::club_id.eq(club_id),
+            club_image::index.eq(club_image_index),
+            club_image::png.eq(data),
+        ))
+        .returning(club_image::id)
+        .get_result(conn);
+    if result.is_err() {
+        print!("Diesel error {:?}\n", result.err());
+        return None;
+    }
+    let club_image_id = result.unwrap();
+
+    Some(serde_json::to_string(&json!({ "club_image_id": club_image_id })).unwrap())
 }
 
 // Add event image, return id
@@ -676,7 +839,8 @@ pub fn add_event_image_api(
 
 // Add club with data, return id
 pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
-    let club_struct_res: Result<ClubJson, serde_json::Error> = serde_json::from_str(&data.as_str());
+    let club_struct_res: Result<PostClubJson, serde_json::Error> =
+        serde_json::from_str(&data.as_str());
     if club_struct_res.is_err() {
         print!("Serde error {:?}\n", club_struct_res.err());
         return None;
@@ -702,8 +866,8 @@ pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
         .values((
             club::id.eq(new_id),
             club::name.eq(club_struct.name),
-            club::description_text.eq(club_struct.description_text),
-            club::description_html.eq(club_struct.description_html),
+            club::description_text.eq(club_struct.description.clone()),
+            club::description_html.eq(club_struct.description),
         ))
         .returning(club::id)
         .get_result(conn);
@@ -714,6 +878,96 @@ pub fn add_club_api(data: String, conn: &mut PgConnection) -> Option<String> {
     let club_id = result.unwrap();
 
     Some(serde_json::to_string(&json!({ "club_id": club_id })).unwrap())
+}
+
+pub fn get_location_api(location_id: i64, conn: &mut PgConnection) -> Option<String> {
+    let result: Result<Location, diesel::result::Error> = location::table
+        .filter(location::id.eq(location_id))
+        .get_result(conn);
+
+    if result.is_err() {
+        print!("Diesel error {:?}\n", result.err());
+        return None;
+    }
+    let location = result.unwrap();
+
+    Some(
+        serde_json::to_string(&LocationJson {
+            id: location.id,
+            description: location.description,
+        })
+        .unwrap(),
+    )
+}
+
+// Get location or create it if it does not exist
+pub fn get_or_create_location_api(data: String, conn: &mut PgConnection) -> Option<String> {
+    let location_struct_res: Result<LocationPostJson, serde_json::Error> =
+        serde_json::from_str(&data.as_str());
+    if location_struct_res.is_err() {
+        print!("Serde error {:?}\n", location_struct_res.err());
+        return None;
+    }
+    let location_struct = location_struct_res.unwrap();
+
+    let location: Result<Location, diesel::result::Error> = location::table
+        .filter(location::description.eq(location_struct.description.clone()))
+        .get_result(conn);
+    if location.is_err() {
+        let location_err = location.err().unwrap();
+        if location_err == diesel::NotFound {
+            // Create the location
+            let new_id_res: Result<Option<i64>, diesel::result::Error> = location::table
+                .select(dsl::max(location::id))
+                .get_result(conn);
+            if new_id_res.is_err() {
+                print!("Diesel error {:?}\n", new_id_res.err());
+                return None;
+            }
+            let new_id_option = new_id_res.unwrap();
+
+            // Get max + 1 if there are other rows, otherwise return 1
+            let new_id = if new_id_option.is_some() {
+                new_id_option.unwrap() + 1
+            } else {
+                1
+            };
+
+            let result: Result<Location, diesel::result::Error> =
+                diesel::insert_into(location::table)
+                    .values((
+                        location::id.eq(new_id),
+                        location::description.eq(location_struct.description),
+                    ))
+                    .get_result(conn);
+
+            if result.is_err() {
+                print!("Diesel error {:?}\n", result.err());
+                return None;
+            }
+            let location_res = result.unwrap();
+
+            return Some(
+                serde_json::to_string(&LocationJson {
+                    id: location_res.id,
+                    description: location_res.description,
+                })
+                .unwrap(),
+            );
+        } else {
+            print!("Diesel error {:?}\n", location_err);
+            return None;
+        }
+    }
+    let location_res = location.unwrap();
+
+    Some(
+        serde_json::to_string(&LocationJson {
+            id: location_res.id,
+            description: location_res.description,
+        })
+        .unwrap(),
+    )
 }
 
 // Clear all events

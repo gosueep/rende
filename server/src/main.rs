@@ -4,8 +4,7 @@ pub use crate::database::*;
 use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{
-    get, http, middleware, post,
-    web,
+    get, http, middleware, post, web,
     web::{Bytes, BytesMut, Data, Json, Path, Payload},
     App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
@@ -22,7 +21,7 @@ use std::sync::{Arc, Mutex, RwLock};
 #[derive(Debug, Serialize, Deserialize)]
 struct Login {
     email: String,
-    password: String,
+    password_hash: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -33,10 +32,9 @@ struct LoginResponse {
 
 #[post("/login")]
 async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    //Build this using login_user_api
     let login_response = login_user_api(
         &info.email.clone(),
-        &info.password.clone(),
+        &info.password_hash.clone(),
         &mut db_conn.into_inner().clone().lock().unwrap(),
     );
 
@@ -69,9 +67,13 @@ async fn get_clubs(db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
 
 //Get club organizer by user id
 #[get("/get_club_by_organizer/{user_id}")]
-async fn get_club_by_organizer(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+async fn get_club_by_organizer(
+    path: Path<i64>,
+    db_conn: Data<Mutex<PgConnection>>,
+) -> impl Responder {
     let user_id = path.into_inner();
-    let clubs = get_club_by_organizer_api(user_id, &mut db_conn.into_inner().clone().lock().unwrap());
+    let clubs =
+        get_club_by_organizer_api(user_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
     // Return id, name, description and start
     if clubs.is_some() {
@@ -85,8 +87,8 @@ async fn get_club_by_organizer(path: Path<i64>, db_conn: Data<Mutex<PgConnection
     }
 }
 
-#[get("/club_image/{id}")]
-async fn get_club_images(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+#[get("/get_club_image/{id}")]
+async fn get_club_image(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
     let image_id = path.into_inner();
     let image = get_club_image_api(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
 
@@ -98,7 +100,24 @@ async fn get_club_images(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) ->
     } else {
         HttpResponse::InternalServerError()
             .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+            .body(serde_json::to_string(&json!({ "error": "/get_club_image failed" })).unwrap())
+    }
+}
+
+#[get("/get_event_image/{id}")]
+async fn get_event_image(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let image_id = path.into_inner();
+    let image = get_event_image_api(image_id, &mut db_conn.into_inner().clone().lock().unwrap());
+
+    // Return png bytes
+    if image.is_some() {
+        HttpResponse::Ok()
+            .content_type("image/png")
+            .streaming(once(ok::<_, Error>(Bytes::from(image.unwrap()))))
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_event_image failed" })).unwrap())
     }
 }
 
@@ -167,6 +186,48 @@ async fn post_club(payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl 
     }
 }
 
+#[post("/post_add_club_image")]
+async fn post_add_club_image(
+    payload: String,
+    db_conn: Data<Mutex<PgConnection>>,
+    request: HttpRequest,
+) -> impl Responder {
+    let req_headers = request.headers();
+    let club_id_header = req_headers.get("Club-Id");
+    let club_id_str: &str = club_id_header.unwrap().to_str().unwrap();
+
+    let club_id = match club_id_str.parse::<i64>() {
+        Ok(n) => n,
+        Err(_) => {
+            return HttpResponse::InternalServerError()
+                .content_type("application/json")
+                .body(
+                    serde_json::to_string(
+                        &json!({ "error": "/post_add_club_image failed, Event-Id is invalid" }),
+                    )
+                    .unwrap(),
+                );
+        }
+    };
+
+    let club_image_id = add_club_image_api(
+        club_id,
+        payload.as_bytes().to_vec(),
+        &mut db_conn.into_inner().clone().lock().unwrap(),
+    );
+    if club_image_id.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(club_image_id.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(
+                serde_json::to_string(&json!({ "error": "/post_add_club_image failed" })).unwrap(),
+            )
+    }
+}
+
 #[post("/post_add_event_image")]
 async fn post_add_event_image(
     payload: String,
@@ -205,6 +266,47 @@ async fn post_add_event_image(
             .content_type("application/json")
             .body(
                 serde_json::to_string(&json!({ "error": "/post_add_event_image failed" })).unwrap(),
+            )
+    }
+}
+
+#[get("/get_location/{location_id}")]
+async fn get_location(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let location_id = path.into_inner();
+    let location = get_location_api(
+        location_id,
+        &mut db_conn.into_inner().clone().lock().unwrap(),
+    );
+
+    // Return id and description
+    if location.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(location.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/get_location failed" })).unwrap())
+    }
+}
+
+#[post("/get_or_create_location")]
+async fn get_or_create_location(
+    payload: String,
+    db_conn: Data<Mutex<PgConnection>>,
+) -> impl Responder {
+    let location =
+        get_or_create_location_api(payload, &mut db_conn.into_inner().clone().lock().unwrap());
+    if location.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(location.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(
+                serde_json::to_string(&json!({ "error": "/get_or_create_location failed" }))
+                    .unwrap(),
             )
     }
 }
@@ -262,14 +364,17 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::clone(&db_conn))
             .service(get_clubs)
             .service(get_club_by_organizer)
-            .service(get_club_images)
+            .service(get_club_image)
+            .service(get_event_image)
             .service(get_event)
             .service(get_newest_events)
             .service(post_event)
             .service(post_club)
             .service(clear_events)
             .service(clear_clubs)
+            .service(post_add_club_image)
             .service(post_add_event_image)
+            .service(get_or_create_location)
             .service(login)
             //.service(web::resource("/").to(|req: HttpRequest| async move {
             //	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)
@@ -279,16 +384,16 @@ async fn main() -> std::io::Result<()> {
                     .index_file("index.html")
                     .show_files_listing(),
             )
-            // .route("/login", web::get().to(login))
-            // .service(
-            //     web::resource("/user/{name}")
-            //         .name("user_detail")
-            //         .guard(guard::Header("content-type", "application/json"))
-            //         .route(web::get().to(HttpResponse::Ok))
-            //         .route(web::put().to(HttpResponse::Ok)),
-            // )
-            // .route("/", web::get().to(|| HttpResponse::Ok().body("/")))
-            // .route("/")
+        // .route("/login", web::get().to(login))
+        // .service(
+        //     web::resource("/user/{name}")
+        //         .name("user_detail")
+        //         .guard(guard::Header("content-type", "application/json"))
+        //         .route(web::get().to(HttpResponse::Ok))
+        //         .route(web::put().to(HttpResponse::Ok)),
+        // )
+        // .route("/", web::get().to(|| HttpResponse::Ok().body("/")))
+        // .route("/")
     })
     .bind(("127.0.0.1", 3030))?
     .run()
