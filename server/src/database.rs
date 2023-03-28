@@ -628,16 +628,16 @@ pub fn get_event_api(id: i64, conn: &mut PgConnection) -> Option<String> {
 }
 
 pub fn get_club_by_organizer_api(user_id: i64, conn: &mut PgConnection) -> Option<String> {
-    let result: Result<Vec<ClubOrganizer>, diesel::result::Error> = club_organizer::table
+    let result: Result<ClubOrganizer, diesel::result::Error> = club_organizer::table
         .filter(club_organizer::user_id.eq(user_id))
-        .get_results(conn);
+        .get_result(conn);
 
     if result.is_err() {
         return None;
     }
     let club_organizer = result.unwrap();
 
-    let json = serde_json::to_string(&json!({ "club": club_organizer[0].club_id}));
+    let json = serde_json::to_string(&json!({ "club": club_organizer.club_id}));
     if json.is_err() {
         return None;
     }
