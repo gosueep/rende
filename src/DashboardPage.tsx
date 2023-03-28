@@ -31,6 +31,8 @@ const EventCreator = (props: { clubID?: number }) => {
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
 
+    console.log("test", startTime())
+
     let location: LocationType = await (await fetch('http://localhost:3030/get_or_create_location', {
       method: 'POST',
       headers: {
