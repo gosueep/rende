@@ -1,6 +1,6 @@
 import { useParams } from '@solidjs/router';
 import { Component, createSignal, For, onMount } from 'solid-js';
-import { EventInfoType, EventType, fetchLocation, LocationType, EventListType, fetchEvent } from "./EventTypes"
+import { EventInfoType, EventType, fetchLocation, LocationType, fetchEvent } from "./EventTypes"
 
 const EventInfo = (props: { event_id: number }) => {
 	const [event, setEvent] = createSignal<EventType>();
