@@ -26,5 +26,5 @@ export type EventType = {
 }
 
 export type EventListType = {
-	events: EventType[],
+	events: EventType[]
 }
