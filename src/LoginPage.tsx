@@ -17,37 +17,38 @@ const LoginPage: Component<{}> = () => {
     const data = encoder.encode(password())
 
     crypto.subtle.digest('SHA-1', data)
-        .then(hashBuffer => {
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
+      .then(hashBuffer => {
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+      })
+      .then(hash => {
+        return fetch('http://localhost:3030/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email(),
+            password_hash: hash
+          })
         })
-        .then(hash => {
-          return fetch('http://localhost:3030/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email(),
-                password: hash
-            })})
-        })
-        .then(response => response.json())
-        .then(response => {
-            if (response.error !== '/login failed') {
-                console.log('ID: ', response.id)
-                setUserID(response.id)
-                global.isLoggedIn = true
-                global.userID = response.id
-                navigate(`/dashboard`)
-            } else {
-              alert('Incorrect email or password. Please try again.')
-            }
-        })
-        .catch(error => {
-            console.log('Login error: ', error)
-        })
+      })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error !== '/login failed') {
+          console.log('ID: ', response.id)
+          setUserID(response.id)
+          global.isLoggedIn = true
+          global.userID = response.id
+          navigate(`/dashboard`)
+        } else {
+          alert('Incorrect email or password. Please try again.')
+        }
+      })
+      .catch(error => {
+        console.log('Login error: ', error)
+      })
   }
 
   return (
