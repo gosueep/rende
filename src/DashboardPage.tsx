@@ -31,7 +31,7 @@ const EventCreator = (props: { clubID?: number }) => {
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
 
-    let location: LocationType = await (await fetch('http://localhost:3030/get_or_create_location', {
+    let location: LocationType = await (await fetch('/get_or_create_location', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ const EventCreator = (props: { clubID?: number }) => {
       }),
     })).json();
 
-    await fetch('http://localhost:3030/post_event', {
+    await fetch('/post_event', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -144,11 +144,11 @@ const DashboardPage: Component<{}> = () => {
   const [clubID, setClubID] = createSignal<number>(0);
 
   onMount(() => {
-    fetch(`http://localhost:3030/get_club_by_organizer/${global.userID}`)
+    fetch(`/get_club_by_organizer/${global.userID}`)
       .then((response) => response.json())
       .then((club) => {
         setClubID(club.club);
-        return fetch(`http://localhost:3030/get_clubs`)
+        return fetch(`/get_clubs`)
           .then((response) => response.json())
           .then((clubs) => {
             return clubs.clubs.find((club: Club) => {
