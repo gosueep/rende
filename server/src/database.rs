@@ -615,6 +615,7 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
         .limit(num)
         .get_results(conn);
     if result.is_err() {
+        println!("Diesel error {:?}", result.err());
         return None;
     }
     let events = result.unwrap();
@@ -631,6 +632,7 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
 
     let json = serde_json::to_string(&list_json);
     if json.is_err() {
+        println!("Serde error {:?}", json.err());
         return None;
     }
 
