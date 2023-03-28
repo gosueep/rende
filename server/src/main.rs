@@ -353,7 +353,7 @@ async fn handle_with_extensions(req: HttpRequest) -> Result<fs::NamedFile, Error
 }
 
 // All files without an extension (handle clientside routing)
-#[get("{path:.*}")]
+#[get("/{path:.*}")]
 async fn handle_without_extensions(req: HttpRequest) -> Result<fs::NamedFile, Error> {
     let file = fs::NamedFile::open("../public/index.html")?;
     Ok(file)
