@@ -25,6 +25,6 @@ export type EventType = {
 	rsvps: string[],
 }
 
-export type EventListType = {
-	events: EventType[],
+export type fetchEventsReturn = {
+	events: EventType[]
 }
