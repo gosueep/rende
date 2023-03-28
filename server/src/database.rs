@@ -533,6 +533,7 @@ pub fn get_all_clubs_api(conn: &mut PgConnection) -> Option<String> {
 
     let json = serde_json::to_string(&events_result);
     if json.is_err() {
+        print!("Serde error {:?}\n", json.err());
         return None;
     }
 
@@ -678,6 +679,7 @@ pub fn get_newest_events_api(num: i64, conn: &mut PgConnection) -> Option<String
 
 // Add event with data, return id
 pub fn add_event_api(data: String, conn: &mut PgConnection) -> Option<String> {
+    println!("Data {}", data);
     let event_struct_res: Result<EventPostJson, serde_json::Error> =
         serde_json::from_str(&data.as_str());
     if event_struct_res.is_err() {
