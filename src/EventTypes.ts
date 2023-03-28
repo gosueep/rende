@@ -22,3 +22,7 @@ export type EventType = {
 	categories: string[],
 	rsvps: string[],
 }
+
+export type fetchEventsReturn = {
+	events: EventType[]
+}
