@@ -30,11 +30,11 @@ const EventCard = (props: any) => {
                     {event()?.info.description_text}
                 </p>
             </div>
-            <div class="px-6 pt-4 pb-2">
+            {/* <div class="px-6 pt-4 pb-2">
                 <For each={event.categories}>{(tag, i) =>
                     <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 mr-2 mb-2">{tag}</span>
                 }</For>
-            </div>
+            </div> */}
         </div >
     )
 };
