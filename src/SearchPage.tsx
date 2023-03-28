@@ -6,12 +6,12 @@ import NavBar from "./NavBar"
 import SearchBar from "./SearchBar"
 import EventCard from "./EventCard"
 
-import {fetchEvents, fetchEventsReturn} from "./EventTypes"
+import { fetchEvents, EventListType } from "./EventTypes"
 
 const SearchPage: Component<{}> = () => {
 
-	const [fetchedEvents] = createResource<fetchEventsReturn, number>(20, fetchEvents)
-	
+	const [fetchedEvents] = createResource<EventListType, number>(20, fetchEvents)
+
 	return <>
 		<NavBar></NavBar>
 		<div class="flex flex-row">
