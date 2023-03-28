@@ -393,6 +393,7 @@ async fn main() -> std::io::Result<()> {
             .service(post_add_club_image)
             .service(post_add_event_image)
             .service(get_or_create_location)
+            .service(get_location)
             .service(login)
             .service(handle_with_extensions)
             .service(handle_without_extensions)
