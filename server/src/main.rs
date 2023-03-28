@@ -8,6 +8,7 @@ use actix_web::{
     web::{Bytes, BytesMut, Data, Json, Path, Payload},
     App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
+use chrono::format::format;
 use diesel::{
     pg::{Pg, PgConnection},
     IntoSql,
@@ -154,7 +155,7 @@ async fn get_newest_events(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) 
     } else {
         HttpResponse::InternalServerError()
             .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/get_event failed" })).unwrap())
+            .body(serde_json::to_string(&json!({ "error": "/get_newest_events failed" })).unwrap())
     }
 }
 
@@ -341,6 +342,20 @@ async fn clear_clubs(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> im
     }
 }
 
+// All files with an extension
+#[get("/{path:.*}.{ext}")]
+async fn handle_with_extensions(req: HttpRequest) -> Result<fs::NamedFile, Error> {
+    let file = fs::NamedFile::open(format!("../public{}", req.uri().path()))?;
+    Ok(file)
+}
+
+// All files without an extension (handle clientside routing)
+#[get("{path:.*}")]
+async fn handle_without_extensions(req: HttpRequest) -> Result<fs::NamedFile, Error> {
+    let file = fs::NamedFile::open("../public/index.html")?;
+    Ok(file)
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -376,14 +391,8 @@ async fn main() -> std::io::Result<()> {
             .service(post_add_event_image)
             .service(get_or_create_location)
             .service(login)
-            //.service(web::resource("/").to(|req: HttpRequest| async move {
-            //	fs::NamedFile::open_async("../public/index.html").await.unwrap().into_response(&req)
-            //}))
-            .service(
-                fs::Files::new("/", "../public")
-                    .index_file("index.html")
-                    .show_files_listing(),
-            )
+            .service(handle_with_extensions)
+            .service(handle_without_extensions)
         // .route("/login", web::get().to(login))
         // .service(
         //     web::resource("/user/{name}")
