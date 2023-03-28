@@ -84,7 +84,10 @@ async fn get_club_by_organizer(
     } else {
         HttpResponse::InternalServerError()
             .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/get_clubs failed" })).unwrap())
+            .body(
+                serde_json::to_string(&json!({ "error": "/get_club_by_organizer failed" }))
+                    .unwrap(),
+            )
     }
 }
 

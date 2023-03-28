@@ -41,7 +41,6 @@ const EventCreator = (props: { clubID?: number }) => {
       }),
     })).json();
 
-
     await fetch('http://localhost:3030/post_event', {
       method: 'POST',
       headers: {
