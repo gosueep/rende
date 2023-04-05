@@ -3,6 +3,15 @@ mod event;
 mod club;
 pub use crate::database::*;
 
+// JWT STUFF
+mod config;
+mod handler;
+mod jwt_auth;
+mod model;
+mod response;
+use config::Config;
+// JWT
+
 use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{
@@ -19,6 +28,13 @@ use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use serde_json::{json};
 use std::sync::{Mutex};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+
+
+pub struct AppState {
+    db: Pool<Postgres>,
+    env: Config,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Login {
@@ -92,35 +108,36 @@ async fn get_or_create_location(
     }
 }
 
-#[post("/clear_events")]
-async fn clear_events(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let delete_res = clear_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
+// I don't think we should allow these through an API
+// #[post("/clear_events")]
+// async fn clear_events(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+//     let delete_res = clear_events_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
-    if delete_res.is_ok() {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "message": "/clear_events succeeded" })).unwrap())
-    } else {
-        HttpResponse::InternalServerError()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/clear_events failed" })).unwrap())
-    }
-}
+//     if delete_res.is_ok() {
+//         HttpResponse::Ok()
+//             .content_type("application/json")
+//             .body(serde_json::to_string(&json!({ "message": "/clear_events succeeded" })).unwrap())
+//     } else {
+//         HttpResponse::InternalServerError()
+//             .content_type("application/json")
+//             .body(serde_json::to_string(&json!({ "error": "/clear_events failed" })).unwrap())
+//     }
+// }
 
-#[post("/clear_clubs")]
-async fn clear_clubs(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let delete_res = clear_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
+// #[post("/clear_clubs")]
+// async fn clear_clubs(_payload: String, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+//     let delete_res = clear_clubs_api(&mut db_conn.into_inner().clone().lock().unwrap());
 
-    if delete_res.is_ok() {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "message": "/clear_clubs succeeded" })).unwrap())
-    } else {
-        HttpResponse::InternalServerError()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/clear_clubs failed" })).unwrap())
-    }
-}
+//     if delete_res.is_ok() {
+//         HttpResponse::Ok()
+//             .content_type("application/json")
+//             .body(serde_json::to_string(&json!({ "message": "/clear_clubs succeeded" })).unwrap())
+//     } else {
+//         HttpResponse::InternalServerError()
+//             .content_type("application/json")
+//             .body(serde_json::to_string(&json!({ "error": "/clear_clubs failed" })).unwrap())
+//     }
+// }
 
 // All files with an extension
 #[get("/{path:.*}.{ext}")]
@@ -165,8 +182,8 @@ async fn main() -> std::io::Result<()> {
             .service(event::get_newest_events)
             .service(event::post_event)
             .service(club::post_club)
-            .service(clear_events)
-            .service(clear_clubs)
+            // .service(clear_events)
+            // .service(clear_clubs)
             .service(club::post_add_club_image)
             .service(event::post_add_event_image)
             .service(get_or_create_location)
@@ -174,6 +191,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(handle_with_extensions)
             .service(handle_without_extensions)
+            .configure(handler::config)
         // .route("/login", web::get().to(login))
         // .service(
         //     web::resource("/user/{name}")
