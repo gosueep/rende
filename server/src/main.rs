@@ -4,12 +4,12 @@ mod club;
 pub use crate::database::*;
 
 // JWT STUFF
-mod config;
-mod handler;
-mod jwt_auth;
-mod model;
-mod response;
-use config::Config;
+// mod config;
+// mod handler;
+// mod jwt_auth;
+// mod model;
+// mod response;
+// use config::Config;
 // JWT
 
 use actix_cors::Cors;
@@ -31,10 +31,10 @@ use std::sync::{Mutex};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 
-pub struct AppState {
-    db: Pool<Postgres>,
-    env: Config,
-}
+// pub struct AppState {
+//     db: Pool<Postgres>,
+//     env: Config,
+// }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Login {
@@ -192,7 +192,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(handle_with_extensions)
             .service(handle_without_extensions)
-            .configure(handler::config)
+            // .configure(handler::config)
         // .route("/login", web::get().to(login))
         // .service(
         //     web::resource("/user/{name}")
