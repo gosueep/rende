@@ -1,15 +1,15 @@
-use actix_web::web::{Bytes, BytesMut, Data, Json, Path, Payload};
-use chrono::*;
+// use actix_web::web::{Bytes, BytesMut, Data, Json, Path, Payload};
+use chrono::NaiveDateTime;
 use diesel::dsl;
-use diesel::pg::{Pg, PgConnection};
+use diesel::pg::{PgConnection};
 use diesel::prelude::*;
-use serde::de::Error;
+// use serde::de::Error;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use std::fmt::Display;
-use std::ptr::null;
-use std::sync::{Arc, Mutex, RwLock};
-use std::{env, ptr};
+use serde_json::{json};
+// use std::fmt::Display;
+// use std::ptr::null;
+// use std::sync::{Arc, Mutex, RwLock};
+use std::{env};
 
 diesel::table! {
     club (id) {
@@ -405,6 +405,15 @@ pub fn create_database() -> PgConnection {
             description VARCHAR(256),
             UNIQUE(description)
         )
+    "#,
+    )
+    .execute(&mut conn)
+    .unwrap();
+
+    // Add indices
+    diesel::sql_query(
+        r#"
+        CREATE INDEX IF NOT EXISTS idx_event_start ON event(start)
     "#,
     )
     .execute(&mut conn)

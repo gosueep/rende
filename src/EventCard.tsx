@@ -4,28 +4,39 @@ import { Component, createResource, createSignal, For, onMount } from 'solid-js'
 import { EventInfoType, EventType, fetchLocation, LocationType, fetchEvent } from "./EventTypes"
 
 const EventCard = (props: any) => {
-    
     const event = props.event as EventType
-    const eventinfo = event.info as EventInfoType
+    const [location, setLocation] = createSignal<LocationType>();
+
+    onMount(async () => {
+        if (event.info.location_id) {
+            const location: LocationType = await fetchLocation(event.info.location_id)
+            setLocation(location)
+        }
+    });
 
     return (
-        <div class="max-h-sm min-h-sm rounded overflow-hidden shadow-lg">
-            <a href="">
-                {/* <img class="flex-1" src="https://oresec.mines.edu/img/full.jpeg" alt="Sunset in the mountains"></img> */}
-                {/* <img class="object-fill" src ="https://images.pexels.com/photos/255419/pexels-photo-255419.jpeg?cs=srgb&dl=pexels-pixabay-255419.jpg&fm=jpg"></img> */}
-            </a>
-            <div class="px-6 py-4">
-                <h2>{eventinfo.name}</h2>
-                {/* <h3>{eventinfo().location}</h3> */}
-                <h3>{new Date(eventinfo.start ?? "DateString").toLocaleTimeString([], { weekday: "long", hour: "numeric", minute: "2-digit" })}</h3>
-                <p class="text-gray-700 text-base">
-                    {eventinfo.description_text}
-                </p>
-            </div>
-            <div class="px-6 pt-4 pb-2">
-                <For each={event.categories}>{(tag, i) =>
-                    <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 mr-2 mb-2">{tag}</span>
-                }</For>
+        <div class="w-80 h-80 bg-white rounded overflow-hidden shadow-lg">
+            <div class="h-full flex flex-col overflow-y-auto">
+                <div class="h-40 relative bg-gray-200" style="min-height: 40%;">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        {event.images.length == 0 ? <p class="text-center">No Image</p> : <a href="">
+                            <img class="w-full h-full object-cover" src={"/get_event_image/" + event.images[0]} />
+                        </a>}
+                    </div>
+                </div>
+                <div class="px-6 py-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="font-bold text-xl mb-2">Name: {event.info.name}</h2>
+                        <h3 class="text-sm mb-2">Location: {location()?.description}</h3>
+                        <h3 class="text-sm mb-2">Start: {new Date((event.info.start ?? 0) * 1000).toLocaleTimeString([], { weekday: "long", hour: "numeric", minute: "2-digit" })}</h3>
+                    </div>
+                    <div class="text-sm mb-2">Description: {event.info.description_text}</div>
+                </div>
+                <div class="px-6 pt-4 pb-2">
+                    <For each={event.categories}>{(tag, i) =>
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 mr-2 mb-2">{tag}</span>
+                    }</For>
+                </div>
             </div>
         </div >
     )
