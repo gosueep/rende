@@ -1,6 +1,7 @@
 mod database;
 mod event;
 mod club;
+mod location;
 pub use crate::database::*;
 
 // JWT STUFF
@@ -64,26 +65,6 @@ async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Re
         HttpResponse::InternalServerError()
             .content_type("application/json")
             .body(serde_json::to_string(&json!({ "error": "/login failed" })).unwrap())
-    }
-}
-
-#[get("/get_location/{location_id}")]
-async fn get_location(path: Path<i64>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
-    let location_id = path.into_inner();
-    let location = get_location_api(
-        location_id,
-        &mut db_conn.into_inner().clone().lock().unwrap(),
-    );
-
-    // Return id and description
-    if location.is_some() {
-        HttpResponse::Ok()
-            .content_type("application/json")
-            .body(location.unwrap())
-    } else {
-        HttpResponse::InternalServerError()
-            .content_type("application/json")
-            .body(serde_json::to_string(&json!({ "error": "/get_location failed" })).unwrap())
     }
 }
 
@@ -187,7 +168,7 @@ async fn main() -> std::io::Result<()> {
             .service(club::post_add_club_image)
             .service(event::post_add_event_image)
             .service(get_or_create_location)
-            .service(get_location)
+            .service(location::get_location)
             .service(login)
             .service(handle_with_extensions)
             .service(handle_without_extensions)
