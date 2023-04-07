@@ -1,6 +1,6 @@
-export const fetchEvents = async (num_events:any) => (await fetch (`/get_newest_events/${num_events}`)).json();
-export const fetchEvent = async (id:any) => (await fetch (`/get_event/${id}`)).json();
-export const fetchLocation = async (id:any) => (await fetch (`/get_location/${id}`)).json();
+export const fetchEvents = async (num_events:any) => (await fetch (`http://localhost:3030/get_newest_events/${num_events}`)).json();
+export const fetchEvent = async (id:any) => (await fetch (`http://localhost:3030/get_event/${id}`)).json();
+export const fetchLocation = async (id:any) => (await fetch (`http://localhost:3030/get_location/${id}`)).json();
 
 export type EventInfoType = {
 	id: string,

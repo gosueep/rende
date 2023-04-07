@@ -36,6 +36,7 @@
 		"webpack-dev-server": "^4.11.1"
 	},
 	"dependencies": {
-		"bcrypt": "^5.1.0"
+		"bcrypt": "^5.1.0",
+		"tailwind-scrollbar-hide": "^1.1.7"
 	}
 }

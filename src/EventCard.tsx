@@ -16,10 +16,15 @@ const EventCard = (props: any) => {
 
     return (
         <div class="w-80 h-80 bg-white rounded overflow-hidden shadow-lg">
-            <div class="h-full flex flex-col overflow-y-auto">
+            <div class="h-full flex flex-col overflow-y-auto scrollbar-hide">
                 <div class="h-40 relative bg-gray-200" style="min-height: 40%;">
                     <div class="absolute inset-0 flex items-center justify-center">
-                        {event.images.length == 0 ? <p class="text-center">No Image</p> : <a href="">
+                        {event.images.length == 0 ? 
+                        
+                        // <p class="text-center">No Image</p>
+                        <img src="https://www.usnews.com/cmsmedia/fb/31/4b2547154ca882fb4a6d6ceec15a/210927-submitted.jpg" alt="bruh" /> 
+
+                        : <a href="">
                             <img class="w-full h-full object-cover" src={"/get_event_image/" + event.images[0]} />
                         </a>}
                     </div>
