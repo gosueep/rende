@@ -34,12 +34,11 @@ phases:
 
 artifacts:
   files:
-  - '**/*'
-  # - server/target/release/server*
-  # - appspec.yml
-  # - server/server
-  # - scripts/*
-  # discard-paths: yes
+  # - '**/*'
+  - appspec.yml
+  - server/**/*
+  - scripts/*
+  - public/**/*
   name: rende-prod-$(date +%Y-%m-%d)
 
 
