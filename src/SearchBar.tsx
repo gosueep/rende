@@ -1,12 +1,18 @@
 
-export default function SearchBar() {
+export default function SearchBar(props: any) {
 	return (
 		<div class="flex-none" id="searchbar-top">
 			<div class="flex flex-row p-2">
 				<div class="flex-1" id="searchbar">
 					<div class="flex flex-row">
 						<div class="flex-1">
-							<input type="search" class="p-2.5 w-full align-top text-sm text-gray-900 bg-gray-300 border border-gray-300 rounded" placeholder="Search for events" required={true} />
+							<input 
+								type="search" 
+								class="p-2.5 w-full align-top text-sm text-gray-900 bg-gray-300 border border-gray-300 rounded" 
+								placeholder="Search for events" 
+								required={true}
+								onInput={props.onSearchChange}
+							/>
 						</div>
 						<div class="flex-none"></div>
 						<button type="submit" class="p-2.5 align-top text-sm font-medium text-white bg-blue-700 border border-blue-700 rounded">
@@ -18,17 +24,21 @@ export default function SearchBar() {
 					</div>
 				</div>
 				{/* Add back filtering when we have time. For MVP, maybe not necessary... */}
-				{/* <div class="flex-none" id="categories">
-					<button type="submit" class="p-2 align-top text-md font-medium text-white bg-yellow-600 border border-yellow-600">
-						<span>Categories</span>
+				<div class="flex-none" id="categories">
+					<button 
+						type="submit" 
+						class="p-2 align-top text-md font-medium text-white bg-yellow-600 border border-yellow-600"
+						onClick={props.onShowPastEventsClick}
+					>
+						<span>Old Events</span>
 					</button>
 				</div>
-				<div class="flex-none" id="filter">
+				{/* <div class="flex-none" id="filter">
 					<button type="submit" class="p-2 align-top text-md font-medium text-white bg-lime-700 border border-lime-700">
 						<span>Filter</span>
 					</button>
-				</div>
-				<div class="flex-none" id="sort">
+				</div> */}
+				{/* <div class="flex-none" id="sort">
 					<button type="submit" class="p-2 align-top text-md font-medium text-white bg-teal-800 border border-teal-800">
 						<span>Sort</span>
 					</button>

@@ -32,5 +32,6 @@ module.exports = {
     static : path.resolve(__dirname, 'public'),
     allowedHosts: "all",
     port : 9000,
+    historyApiFallback: true,
   },
 }

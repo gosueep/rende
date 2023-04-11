@@ -57,6 +57,8 @@ const EventCreator = (props: { clubID?: number }) => {
       }),
     });
 
+    alert('Event Submitted')
+
     setEventName('');
     setEventDescription('');
     setMeetingLocation('');
@@ -179,11 +181,6 @@ const DashboardPage: Component<{}> = () => {
           </div>
         </div>
       </main>
-      <footer class="bg-gray-200 mt-auto">
-        <div class="container mx-auto px-4 py-2 text-center">
-          &copy; 2023 SolidJS Example Project
-        </div>
-      </footer>
     </div>
   );
 };

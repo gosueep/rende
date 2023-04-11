@@ -23,7 +23,7 @@ const EventCard = (props: any) => {
         if (event.info.location_id) {
             const location: LocationType = await fetchLocation(event.info.location_id)
             setLocation(location)
-            console.log(location)
+            // console.log(location)
         }
     });
 

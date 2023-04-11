@@ -7,6 +7,7 @@ const SearchPage = lazy(() => import("./SearchPage"))
 const EventPage = lazy(() => import ("./EventPage"))
 const DashboardPage  = lazy(() => import("./DashboardPage"))
 const LoginPage = lazy(() => import("./LoginPage"))
+const RegisterPage = lazy(() => import("./RegisterPage"))
 
 declare global {
 	var isLoggedIn: boolean
@@ -30,6 +31,7 @@ const App: Component<{}> = () => {
 			{/* <Route path='/' component={ EventPage } /> */}
 			<Route path='/userlogin' component={ LoginPage } />
 			<Route path='/dashboard' component={ DashboardPage } />
+			<Route path='/register' component={ RegisterPage } />
 		</Routes>
 	</Router>
 	)

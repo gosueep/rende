@@ -43,6 +43,12 @@ struct Login {
     password_hash: String,
 }
 
+struct BetaLogin {
+    email: String,
+    password_hash: String,
+    betapass: String,
+}
+
 #[derive(Debug, Serialize)]
 struct LoginResponse {
     success: bool,
@@ -67,6 +73,26 @@ async fn login(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Re
             .body(serde_json::to_string(&json!({ "error": "/login failed" })).unwrap())
     }
 }
+
+#[post("/api_register")]
+async fn register(info: Json<Login>, db_conn: Data<Mutex<PgConnection>>) -> impl Responder {
+    let register_response = register_user_api(
+        &info.email.clone(),
+        &info.password_hash.clone(),
+        &mut db_conn.into_inner().clone().lock().unwrap(),
+    );
+
+    if register_response.is_some() {
+        HttpResponse::Ok()
+            .content_type("application/json")
+            .body(register_response.unwrap())
+    } else {
+        HttpResponse::InternalServerError()
+            .content_type("application/json")
+            .body(serde_json::to_string(&json!({ "error": "/api_register failed" })).unwrap())
+    }
+}
+
 
 #[post("/get_or_create_location")]
 async fn get_or_create_location(
@@ -170,6 +196,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_or_create_location)
             .service(location::get_location)
             .service(login)
+            .service(register)
             .service(handle_with_extensions)
             .service(handle_without_extensions)
             // .configure(handler::config)

@@ -4,17 +4,27 @@ import bcrypt from 'bcrypt'
 
 
 
-const LoginPage: Component<{}> = () => {
+const RegisterPage: Component<{}> = () => {
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
+  const [betapass, setBetapass] = createSignal('')
   const [userID, setUserID] = createSignal('')
   const navigate = useNavigate()
 
   const handleSubmit = (e: Event) => {
-    console.log('IS this working?')
     e.preventDefault()
     const encoder = new TextEncoder()
     const data = encoder.encode(password())
+
+    if (!['rendebeta', 'rendeopenbeta'].includes(betapass())) {
+        alert('Incorrect Beta Key')
+        return
+    }
+
+    if (password() == '' || email() == '') {
+        alert('Email/Password cannot be blank!')
+        return
+    }
 
     crypto.subtle.digest('SHA-1', data)
       .then(hashBuffer => {
@@ -23,7 +33,7 @@ const LoginPage: Component<{}> = () => {
         return hashHex;
       })
       .then(hash => {
-        return fetch('/login', {
+        return fetch('/api_register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -36,7 +46,7 @@ const LoginPage: Component<{}> = () => {
       })
       .then(response => response.json())
       .then(response => {
-        if (response.error !== '/login failed') {
+        if (response.error !== '/api_register failed') {
           console.log('ID: ', response.id)
           setUserID(response.id)
           global.isLoggedIn = true
@@ -55,6 +65,19 @@ const LoginPage: Component<{}> = () => {
     <div class="flex justify-center items-center h-screen bg-gray-100">
       <form class="bg-white rounded-lg p-8 shadow-md">
         <h2 class="text-2xl font-medium mb-6">Welcome to Rende</h2>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2" for="betapass">
+            Beta Key
+          </label>
+          <input
+            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="betapass"
+            type="betapass"
+            placeholder="Enter the beta key"
+            value={betapass()}
+            onInput={(e) => setBetapass(e.currentTarget.value)}
+          />
+        </div>
         <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2" for="email">
             Email
@@ -82,11 +105,11 @@ const LoginPage: Component<{}> = () => {
           />
         </div>
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" onClick={handleSubmit}>
-          Sign In
+          Create Account
         </button>
       </form>
     </div>
   )
 }
 
-export default LoginPage
+export default RegisterPage
