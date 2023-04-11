@@ -3,6 +3,18 @@ import { Component, createResource, createSignal, For, onMount } from 'solid-js'
 
 import { EventInfoType, EventType, fetchLocation, LocationType, fetchEvent } from "./EventTypes"
 
+
+function dateString(start : number) {
+    const date_obj = new Date(start)
+    
+    const day = date_obj.toLocaleTimeString([], { weekday: "long", hour: "numeric", minute: "2-digit" }) as string
+    const date = date_obj.toLocaleDateString([], { month: 'numeric', day: 'numeric'}) as string
+
+    return `${day} (${date})`
+
+}
+
+
 const EventCard = (props: any) => {
     const event = props.event as EventType
     const [location, setLocation] = createSignal<LocationType>();
@@ -11,6 +23,7 @@ const EventCard = (props: any) => {
         if (event.info.location_id) {
             const location: LocationType = await fetchLocation(event.info.location_id)
             setLocation(location)
+            // console.log(location)
         }
     });
 
@@ -33,7 +46,7 @@ const EventCard = (props: any) => {
                     <div>
                         <h2 class="font-bold text-xl mb-2">Name: {event.info.name}</h2>
                         <h3 class="text-sm mb-2">Location: {location()?.description}</h3>
-                        <h3 class="text-sm mb-2">Start: {new Date((event.info.start ?? 0) * 1000).toLocaleTimeString([], { weekday: "long", hour: "numeric", minute: "2-digit" })}</h3>
+                        <h3 class="text-sm mb-2">Start: {dateString(event.info.start)}</h3>
                     </div>
                     <div class="text-sm mb-2">Description: {event.info.description_text}</div>
                 </div>
