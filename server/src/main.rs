@@ -28,7 +28,7 @@ use dotenvy::dotenv;
 // use futures::{future::ok, stream::once};
 use serde::{Deserialize, Serialize};
 use serde_json::{json};
-use std::sync::{Mutex};
+use std::{sync::{Mutex}, fmt};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 
@@ -149,7 +149,9 @@ async fn get_or_create_location(
 // All files with an extension
 #[get("/{path:.*}.{ext}")]
 async fn handle_with_extensions(req: HttpRequest) -> Result<fs::NamedFile, Error> {
-    let file = fs::NamedFile::open(format!("../public{}", req.uri().path()))?;
+    // Redirect subdomain files to the root
+    let filename = req.uri().path().rsplit('/').next().unwrap();
+    let file = fs::NamedFile::open(format!("../public/{}", filename))?;
     Ok(file)
 }
 
