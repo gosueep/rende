@@ -1,0 +1,45 @@
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	"rende/db"
+	"rende/org"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+		return
+	}
+
+	db.Conn, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal("Error connecting to Database, check environment credentials")
+	}
+
+	router := gin.Default()
+
+	// Orgs
+	router.POST("get_orgs", org.GetOrgs)
+	router.POST("create_org")
+	router.POST("edit_org")
+
+	// Events
+	router.POST("get_event/:id")
+	router.POST("get_events_by_org/:org_id")
+	router.POST("get_latest_events/:amount")
+	router.POST("post_event")
+	router.POST("edit_event")
+
+	// User
+	router.POST("api_login")
+	router.POST("api_register")
+}
