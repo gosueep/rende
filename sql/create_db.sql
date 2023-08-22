@@ -1,5 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- USERS
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -10,4 +11,28 @@ CREATE TABLE users (
     verified BOOLEAN NOT NULL DEFAULT FALSE
     -- created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     -- updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+-- ORG
+DROP TABLE IF EXISTS org;
+CREATE TABLE org (
+    id BIGSERIAL PRIMARY KEY,
+    name varchar(256),
+    description TEXT,
+    photo_url varchar(256),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- EVENT
+DROP TABLE IF EXISTS event;
+CREATE TABLE event (
+    id BIGSERIAL PRIMARY KEY,
+    org_id BIGINT,
+    name varchar(256),
+    description text,
+    date TIMESTAMP,
+    photo_url varchar(256), 
+    is_recurring BOOLEAN
 );

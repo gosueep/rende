@@ -29,7 +29,7 @@ func main() {
 
 	// Orgs
 	router.POST("get_orgs", org.GetOrgs)
-	router.POST("create_org")
+	router.POST("create_org", org.CreateOrg)
 	router.POST("edit_org")
 
 	// Events
@@ -42,4 +42,6 @@ func main() {
 	// User
 	router.POST("api_login")
 	router.POST("api_register")
+
+	router.Run("localhost:8000")
 }

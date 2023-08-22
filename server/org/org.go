@@ -13,6 +13,7 @@ import (
 type Org struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
+	Description string `json:"description"`
 	PhotoURL string `json:"photo_url"`
 	// City string `json:"city"`
 	// State string `json:"state"`
@@ -20,7 +21,7 @@ type Org struct {
 
 func GetOrgs(c *gin.Context) {
 	var orgs []Org
-	rows, _ := db.Conn.Query(context.Background(), "SELECT id, name, photo_url from orgs")
+	rows, _ := db.Conn.Query(context.Background(), "SELECT id, name, photo_url from org")
 	for rows.Next() {
 		var org Org
 		_ = rows.Scan(&org.ID, &org.Name, &org.PhotoURL)
@@ -37,7 +38,7 @@ func GetOrgById(c *gin.Context) {
 	id := c.Param("id")
 	var org Org
 	err := db.Conn.QueryRow(context.Background(), 
-		"SELECT id, name, photo_url from orgs WHERE id=$1", id).
+		"SELECT id, name, photo_url from org WHERE id=$1", id).
 		Scan(&org.ID, &org.Name, &org.PhotoURL)
 	if err != nil {
 		fmt.Println(err)
@@ -49,13 +50,19 @@ func GetOrgById(c *gin.Context) {
 
 // Create org from post form
 func CreateOrg(c *gin.Context) {
-	var newOrg Org
-	err := c.BindJSON(newOrg)
+
+	var json struct {
+		NewOrg Org `json:"org" binding:"required"`
+	}
+
+	err := c.BindJSON(&json)
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	var newOrg Org = json.NewOrg
+
 	db.Conn.Exec(context.Background(),
-		"INSERT INTO orgs (name, photo_url) VALUES ($1, $2)",
+		"INSERT INTO org (name, description, photo_url) VALUES ($1, $2)",
 		newOrg.Name, newOrg.PhotoURL)
 }
