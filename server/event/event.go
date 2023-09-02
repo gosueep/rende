@@ -31,7 +31,9 @@ func GetEvent(c *gin.Context) {
 			COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
 		FROM event 
 		WHERE id=$1`,
-		id).Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, &event.Location, &event.Date, &event.PhotoURL, &event.IsRecurring)
+		id).Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, 
+			&event.Date, &event.Location, 
+			&event.PhotoURL, &event.IsRecurring)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			c.JSON(http.StatusBadRequest, fmt.Sprintf(`Event id "%s" not found`, id))
@@ -59,8 +61,9 @@ func GetLatestEvents(c *gin.Context) {
 
 	for rows.Next() {
 		var event Event
-		err := rows.Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, &event.Location,
-			&event.Date, &event.PhotoURL, &event.IsRecurring)
+		err := rows.Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, 
+			&event.Date, &event.Location,
+			&event.PhotoURL, &event.IsRecurring)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -118,7 +121,9 @@ func PostEvent(c *gin.Context) {
 	commandTag, err := db.Conn.Exec(context.Background(),
 		`INSERT INTO event (org_id, name, description, date, location, photo_url, is_recurring) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-		newEvent.Org_id, newEvent.Name, newEvent.Description, newEvent.Date, newEvent.Location, newEvent.PhotoURL, newEvent.IsRecurring)
+		newEvent.Org_id, newEvent.Name, newEvent.Description, 
+		newEvent.Date, newEvent.Location, 
+		newEvent.PhotoURL, newEvent.IsRecurring)
 
 	if err != nil {
 		fmt.Println(commandTag, err)
