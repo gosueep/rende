@@ -34,7 +34,7 @@ func GetEvent(c *gin.Context) {
 		id).Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, &event.Location, &event.Date, &event.PhotoURL, &event.IsRecurring)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			c.JSON(http.StatusBadRequest, fmt.Sprintf(`Event id %s not found`, id))
+			c.JSON(http.StatusBadRequest, fmt.Sprintf(`Event id "%s" not found`, id))
 		} else {
 			c.JSON(http.StatusBadRequest, "Bad Request")
 			fmt.Println(err)
@@ -122,8 +122,8 @@ func PostEvent(c *gin.Context) {
 
 	if err != nil {
 		fmt.Println(commandTag, err)
-		c.JSON(http.StatusInternalServerError, "Error creating event :|")
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Error creating event %s", db.Sad()))
 	} else {
-		c.JSON(http.StatusOK, "Event sucessfully created :3")
+		c.JSON(http.StatusOK, fmt.Sprintf("Event sucessfully created %s", db.Happy()))
 	}
 }

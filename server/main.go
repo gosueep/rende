@@ -30,6 +30,7 @@ func main() {
 
 	// Orgs
 	router.POST("get_orgs", org.GetOrgs)
+	router.POST("get_org/:id", org.GetOrgById)
 	router.POST("create_org", org.CreateOrg)
 	router.POST("edit_org")
 
