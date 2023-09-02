@@ -15,7 +15,7 @@ CREATE TABLE users (
 
 
 -- ORG
-DROP TABLE IF EXISTS org;
+DROP TABLE IF EXISTS org CASCADE;
 CREATE TABLE org (
     id BIGSERIAL PRIMARY KEY,
     name varchar(256),
@@ -26,13 +26,25 @@ CREATE TABLE org (
 
 
 -- EVENT
-DROP TABLE IF EXISTS event;
+DROP TABLE IF EXISTS event CASCADE;
 CREATE TABLE event (
     id BIGSERIAL PRIMARY KEY,
     org_id BIGINT,
     name varchar(256),
     description text,
-    date TIMESTAMP,
+    location varchar(256),
+    date TIMESTAMP NOT NULL,
     photo_url varchar(256), 
     is_recurring BOOLEAN
 );
+
+-- NORMALIZE LATER
+-- DROP TABLE IF EXISTS org_event_xref;
+-- CREATE TABLE org_event_xref (
+--     id BIGSERIAL PRIMARY KEY,
+--     org_id BIGINT REFERENCES org(id),
+--     event_id BIGINT REFERENCES event(id)
+-- );
+
+
+\i testdata.sql

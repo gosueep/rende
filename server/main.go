@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"rende/db"
+	"rende/event"
 	"rende/org"
 
 	"github.com/gin-gonic/gin"
@@ -33,10 +34,10 @@ func main() {
 	router.POST("edit_org")
 
 	// Events
-	router.POST("get_event/:id")
-	router.POST("get_events_by_org/:org_id")
-	router.POST("get_latest_events/:amount")
-	router.POST("post_event")
+	router.POST("get_event/:id", event.GetEvent)
+	router.POST("get_events_by_org/:org_id", event.GetEventsByOrg)
+	router.POST("get_latest_events/:amount", event.GetLatestEvents)
+	router.POST("post_event", event.PostEvent)
 	router.POST("edit_event")
 
 	// User
