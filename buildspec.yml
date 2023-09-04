@@ -11,7 +11,7 @@ phases:
   install:
     runtime-versions:
       nodejs: latest
-      golang: 1.20
+      golang: latest
     commands:
       - echo Updating...
       - apt-get update
@@ -24,7 +24,7 @@ phases:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - go build -C server
+      - cd server && go build
   post_build:
     commands:
       - echo Entered the post_build phase...
