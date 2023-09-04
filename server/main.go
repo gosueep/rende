@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -35,26 +36,34 @@ func main() {
 	// 	AllowOrigins: ,
 	// }))
 
-	// Orgs
-	router.POST("get_orgs", org.GetOrgs)
-	router.GET("get_org/:id", org.GetOrgById)
-	router.POST("get_org/:id", org.GetOrgById)
-	router.POST("create_org", org.CreateOrg)
-	router.POST("edit_org")
+	// Add auth middleware
 
-	// Events
-	router.POST("get_event/:id", event.GetEvent)
-	router.GET("get_events_by_org/:org_id", event.GetEventsByOrg)
-	router.POST("get_events_by_org/:org_id", event.GetEventsByOrg)
-	router.GET("get_latest_events/:amount", event.GetLatestEvents)
-	router.POST("get_latest_events/:amount", event.GetLatestEvents)
-	router.POST("post_event", event.PostEvent)
-	router.POST("edit_event")
+	// router.NoRoute()
+	router.Use(static.Serve("/", static.LocalFile("../public", false)))
 
-	// User
-	router.POST("api_login")
-	router.POST("api_register")
 
+	api := router.Group("api") 
+	{
+		// Orgs
+		api.POST("get_orgs", org.GetOrgs)
+		api.GET("get_org/:id", org.GetOrgById)
+		api.POST("get_org/:id", org.GetOrgById)
+		api.POST("create_org", org.CreateOrg)
+		api.POST("edit_org")
+
+		// Events
+		api.POST("get_event/:id", event.GetEvent)
+		api.GET("get_events_by_org/:org_id", event.GetEventsByOrg)
+		api.POST("get_events_by_org/:org_id", event.GetEventsByOrg)
+		api.GET("get_latest_events/:amount", event.GetLatestEvents)
+		api.POST("get_latest_events/:amount", event.GetLatestEvents)
+		api.POST("post_event", event.PostEvent)
+		api.POST("edit_event")
+
+		// User
+		api.POST("api_login")
+		api.POST("api_register")
+	}
 	
 	// TODODODODOD
 
