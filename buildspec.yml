@@ -18,7 +18,7 @@ phases:
     commands:
       - echo Installing npm Dependencies
       - npm install
-      - curl https://go.dev/dl/go1.21.0.linux-386.tar.gz
+      - wget https://go.dev/dl/go1.21.0.linux-386.tar.gz
       - rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.0.linux-386.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - go version
