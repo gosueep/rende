@@ -1,5 +1,5 @@
 import { Component, createSignal, onMount } from 'solid-js';
-import type { EventInfoType, EventType, LocationType } from "./EventTypes"
+import type { EventType, LocationType } from "./EventTypes"
 
 type Club = {
   id: number;
@@ -87,7 +87,7 @@ const EventCreator = (props: { clubID?: number }) => {
               class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               value={eventDescription()}
               onInput={(e) =>
-                setEventDescription((e.target as HTMLInputElement).value)
+                setEventDescription((e.target).value)
               }
             />
           </label>

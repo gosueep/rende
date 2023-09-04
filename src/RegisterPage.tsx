@@ -1,6 +1,6 @@
 import { Component, createSignal } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
-import bcrypt from 'bcrypt'
+// import bcrypt from 'bcrypt'
 
 
 
