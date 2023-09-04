@@ -18,8 +18,8 @@ phases:
     commands:
       - echo Installing npm Dependencies
       - npm install
-      - wget https://go.dev/dl/go1.21.0.linux-386.tar.gz
-      - tar -xzf go1.21.0.linux-386.tar.gz
+      - wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+      - tar -xzf go1.21.0.linux-amd64.tar.gz
       - ./go/bin/go version
   build:
     commands:
