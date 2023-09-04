@@ -11,7 +11,6 @@ phases:
   install:
     runtime-versions:
       nodejs: latest
-      golang: latest
     commands:
       - echo Updating...
       - apt-get update
@@ -19,12 +18,15 @@ phases:
     commands:
       - echo Installing npm Dependencies
       - npm install
+      - wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+      - tar -xzf go1.21.0.linux-amd64.tar.gz
+      - ./go/bin/go version
   build:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - go build -C server
+      - ./go/bin/go build -C server
   post_build:
     commands:
       - echo Entered the post_build phase...
@@ -32,12 +34,11 @@ phases:
 
 artifacts:
   files:
-  - '**/*'
-  # - server/target/release/server*
-  # - appspec.yml
-  # - server/server
-  # - scripts/*
-  # discard-paths: yes
+  # - '**/*'
+  - appspec.yml
+  - server/**/*
+  - scripts/*
+  - public/**/*
   name: rende-prod-$(date +%Y-%m-%d)
 
 
