@@ -19,15 +19,14 @@ phases:
       - echo Installing npm Dependencies
       - npm install
       - wget https://go.dev/dl/go1.21.0.linux-386.tar.gz
-      - rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.0.linux-386.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - go version
+      - tar -xzf go1.21.0.linux-386.tar.gz
+      - ./go/bin/go version
   build:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - cd server && go build
+      - cd server && ./go/bin/go build
   post_build:
     commands:
       - echo Entered the post_build phase...
