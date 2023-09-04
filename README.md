@@ -1,8 +1,9 @@
 # Rende
-Rende(zvous)
+Rende(zvous), The Events App 
 
-Ronde Santis
+Pronounced ron-day
 
-Eugin Pahk (Asian)
-Addison Hart (Asian pass)
-Scott Enriquez (not asian)
+## Why?
+It should be easier to organize events and to advertise them. Eventbrite and Meetup don't have the functionality I always want.
+
+The idea: work this out on school campuses and with local tech communities....
