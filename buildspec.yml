@@ -26,7 +26,7 @@ phases:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - cd server && ./go/bin/go build
+      - ./go/bin/go build -C server
   post_build:
     commands:
       - echo Entered the post_build phase...
