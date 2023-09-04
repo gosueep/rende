@@ -8,13 +8,10 @@
 // 	).json();
 
 export const fetchEvents = async function (num_events:any) {
-	const resp = await fetch (`http://localhost:8000/get_latest_events/${num_events}`, {
-		// method: "POST",
-		// mode: "no-cors",
-	})
-	console.log(resp)
-	// console.log(resp.json)
-	return resp.json()
+	const resp = await fetch (`http://localhost:8000/get_latest_events/${num_events}`)
+	const results = await resp.json()
+	const output = results as EventType[]
+	return output
 }
 export const fetchEvent = async (id:any) => (await fetch (`http://localhost:8000/get_event/${id}`)).json();
 export const fetchLocation = async (id:any) => (await fetch (`localhost:8000/get_location/${id}`)).json();

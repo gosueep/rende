@@ -13,14 +13,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/TheGreatRambler/rende.git"
+		"url": "git+https://github.com/gosueep/rende.git"
 	},
-	"author": "Eugin Pahk",
+	"author": "gosuep",
 	"license": "ISC",
 	"bugs": {
-		"url": "https://github.com/TheGreatRambler/rende/issues"
+		"url": "https://github.com/gosueep/rende/issues"
 	},
-	"homepage": "https://github.com/TheGreatRambler/rende#readme",
+	"homepage": "https://github.com/gosueep/rende#readme",
 	"devDependencies": {
 		"@solidjs/router": "^0.8.3",
 		"@types/react": "^18.2.21",

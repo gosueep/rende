@@ -11,12 +11,10 @@ phases:
   install:
     runtime-versions:
       nodejs: latest
+      golang: latest
     commands:
       - echo Updating...
       - apt-get update
-      - echo Installing Rust...
-      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - source $HOME/.cargo/env
   pre_build:
     commands:
       - echo Installing npm Dependencies
@@ -26,7 +24,7 @@ phases:
       - echo Entered the build phase...
       - echo Build started on `date`
       - npm run build
-      - cargo build --release --manifest-path=server/Cargo.toml
+      - go build -C server
   post_build:
     commands:
       - echo Entered the post_build phase...

@@ -51,25 +51,8 @@ function thisMonth(start : Date, showPast: boolean) {
 	)
 }
 
-export const fetchEventsA = async function (num_events:any) {
-	const resp = await fetch (`http://localhost:8000/get_latest_events/${num_events}`, {
-		// method: "POST",
-		// mode: "no-cors",
-	})
-	// 	.then(resp => resp.json())
-	console.log(resp)
-	const results = await resp.json()
-	console.log(results)
-	const output = results as EventType[]
-	console.log(output)
-	return output
-}
-
 const SearchPage: Component<{}> = () => {
-
-
-
-	const [fetchedEvents] = createResource<EventType[], number>(20, fetchEventsA)
+	const [fetchedEvents] = createResource<EventType[], number>(20, fetchEvents)
 	const [filteredEvents, setFilteredEvents] = createSignal(fetchedEvents)
 	const [searchQuery, setSearchQuery] = createSignal('')
 	const [searchProps, setSearchProps] = createSignal<SearchProps>({
@@ -102,10 +85,8 @@ const SearchPage: Component<{}> = () => {
 			<div class="flex-1" id="content">
 				<div class="flex flex-col">
 					<div class="grid gap-8 text-neutral-600 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-5">
-					{/* {fetchedEvents()?.toString} */}
 						<Suspense fallback={<div>Loading</div>}>
 							<For each={fetchedEvents()}>{(event) =>
-								// <p>{event.name}</p>
 								<Show when={searchFilterItem(event, searchQuery(), showPast())}>
 									<EventCard event={event}/>
 								</Show>
