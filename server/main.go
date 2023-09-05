@@ -8,6 +8,7 @@ import (
 	"rende/db"
 	"rende/event"
 	"rende/org"
+	"rende/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -15,20 +16,34 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 )
 
 func main() {
+	// Load Environment file
 	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-		return
-	}
+	if err != nil {log.Fatal("Error loading .env file")}
 
+	// Setup DB connection
 	db.Conn, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatal("Error connecting to Database, check environment credentials")
+	if err != nil {log.Fatal("Error connecting to Database, check environment credentials in .env", err)}
+
+	// setup AWS
+	conf := &aws.Config{Region: aws.String(os.Getenv("COGNITO_REGION"))}
+	sess, err := session.NewSession(conf)
+	if err != nil {log.Fatal("Error creating AWS Session")}
+	auth.Cognito = auth.CognitoInfo{
+		Client: cognito.New(sess),
+		UserPoolID: os.Getenv("COGNITO_USER_POOL_ID"),
+		AppClientID: os.Getenv("COGNITO_APP_CLIENT_ID"),
+		AppClientSecret: os.Getenv("COGNITO_APP_CLIENT_SECRET"),
 	}
 
+
+	// Router
 	router := gin.Default()
 
 	router.Use(cors.Default())
@@ -61,8 +76,8 @@ func main() {
 		api.POST("edit_event")
 
 		// User
-		api.POST("api_login")
-		api.POST("api_register")
+		api.POST("login")
+		api.POST("register", auth.RegisterUser)
 	}
 	
 	// TODODODODOD
