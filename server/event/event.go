@@ -29,7 +29,7 @@ func GetEvent(c *gin.Context) {
 	err := db.Conn.QueryRow(context.Background(),
 		`SELECT id, org_id, name, description, date,
 			COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
-		FROM event 
+		FROM public.event 
 		WHERE id=$1`,
 		id).Scan(&event.ID, &event.Org_id, &event.Name, &event.Description, 
 			&event.Date, &event.Location, 
@@ -52,7 +52,7 @@ func GetLatestEvents(c *gin.Context) {
 	var events []Event
 	rows, err := db.Conn.Query(context.Background(),
 		`SELECT id, org_id, name, description, date, COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
-		FROM event 
+		FROM public.event 
 		ORDER BY date DESC 
 		LIMIT $1`, numEvents)
 	if err != nil {
@@ -90,7 +90,7 @@ func GetEventsByOrg(c *gin.Context) {
 	var events []Event
 	rows, _ := db.Conn.Query(context.Background(),
 		`SELECT id, org_id, name, description, date, COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
-		FROM event WHERE org_id=$1`,
+		FROM public.event WHERE org_id=$1`,
 		org_id)
 	for rows.Next() {
 		var event Event
@@ -119,7 +119,7 @@ func PostEvent(c *gin.Context) {
 	var newEvent Event = json.NewEvent
 
 	commandTag, err := db.Conn.Exec(context.Background(),
-		`INSERT INTO event (org_id, name, description, date, location, photo_url, is_recurring) 
+		`INSERT INTO public.event (org_id, name, description, date, location, photo_url, is_recurring) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		newEvent.Org_id, newEvent.Name, newEvent.Description, 
 		newEvent.Date, newEvent.Location, 

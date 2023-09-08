@@ -22,7 +22,7 @@ type Org struct {
 
 func GetOrgs(c *gin.Context) {
 	var orgs []Org
-	rows, _ := db.Conn.Query(context.Background(), "SELECT id, name, COALESCE(photo_url, '') from org")
+	rows, _ := db.Conn.Query(context.Background(), "SELECT id, name, COALESCE(photo_url, '') from public.org")
 	for rows.Next() {
 		var org Org
 		err := rows.Scan(&org.ID, &org.Name, &org.PhotoURL)
@@ -32,7 +32,6 @@ func GetOrgs(c *gin.Context) {
 		orgs = append(orgs, org)
 	}
 
-	fmt.Println(orgs)
 	c.JSON(http.StatusOK, orgs)
 }
 
@@ -41,7 +40,7 @@ func GetOrgById(c *gin.Context) {
 	id := c.Param("id")
 	var org Org
 	err := db.Conn.QueryRow(context.Background(),
-		"SELECT id, name, COALESCE(photo_url, '') from org WHERE id=$1", id).
+		"SELECT id, name, COALESCE(photo_url, '') from public.org WHERE id=$1", id).
 		Scan(&org.ID, &org.Name, &org.PhotoURL)
 	if err != nil {
 		fmt.Println(err)
@@ -68,7 +67,7 @@ func CreateOrg(c *gin.Context) {
 	var newOrg Org = json.NewOrg
 
 	commandTag, err := db.Conn.Exec(context.Background(),
-		"INSERT INTO org (name, description, photo_url) VALUES ($1, $2, $3)",
+		"INSERT INTO public.org (name, description, photo_url) VALUES ($1, $2, $3)",
 		newOrg.Name, newOrg.Description, newOrg.PhotoURL)
 	
 	if err != nil {
