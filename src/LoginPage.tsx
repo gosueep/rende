@@ -4,6 +4,7 @@ import { useNavigate } from '@solidjs/router'
 
 
 const LoginPage: Component<{}> = () => {
+  const [name, setName] = createSignal('')
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
   const [userID, setUserID] = createSignal('')
@@ -12,48 +13,25 @@ const LoginPage: Component<{}> = () => {
   const handleSubmit = (e: Event) => {
     console.log('IS this working?')
     e.preventDefault()
-    // const encoder = new TextEncoder()
-    // const data = encoder.encode(password())
-
-    // crypto.subtle.digest('SHA-1', data)
-    //   .then(hashBuffer => {
-    //     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    //     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    //     return hashHex;
-    //   })
-    //   .then(hash => {
-    //     return fetch('/login', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json'
-    //       },
-    //       body: JSON.stringify({
-    //         email: email(),
-    //         password_hash: hash
-    //       })
-    //     })
-    //   })
-    //   .then(response => response.json())
-    //   .then(response => {
-    //     if (response.error !== '/login failed') {
-    //       console.log('ID: ', response.id)
-    //       setUserID(response.id)
-    //       global.isLoggedIn = true
-    //       global.userID = response.id
-    //       navigate(`/dashboard`)
-    //     } else {
-    //       alert('Incorrect email or password. Please try again.')
-    //     }
-    //   })
-    //   .catch(error => {
-    //     console.log('Login error: ', error)
-    //   })
   }
 
   return (
     <div class="flex justify-center items-center h-screen bg-gray-100">
       <form class="bg-white rounded-lg p-8 shadow-md">
         <h2 class="text-2xl font-medium mb-6">Welcome to Rende</h2>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2" for="email">
+            Name
+          </label>
+          <input
+            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="Name"
+            type="Name"
+            placeholder="Enter your Name"
+            value={name()}
+            onInput={(e) => setName(e.currentTarget.value)}
+          />
+        </div>
         <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2" for="email">
             Email

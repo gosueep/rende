@@ -53,8 +53,11 @@ func main() {
 
 	// Add auth middleware
 
-	// router.NoRoute()
 	router.Use(static.Serve("/", static.LocalFile("../public", false)))
+	router.NoRoute(func(c *gin.Context) {
+		c.Request.URL.Path = "/"
+		router.HandleContext(c)
+	})
 
 
 	api := router.Group("api") 
