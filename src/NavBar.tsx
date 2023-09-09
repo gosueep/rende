@@ -1,6 +1,7 @@
 import { Link } from "@solidjs/router";
 
 import SearchBar from "./SearchBar";
+import { Show } from "solid-js";
 
 
 // Based off https://v1.tailwindcss.com/components/navigation
@@ -38,12 +39,14 @@ export default function NavBar(props: any) {
                     <Link href='/dashboard' class="text-sm px-3 py-2 font-medium text-white hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
                         Post Event
                     </Link>
-                    <Link href="/register" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
-                        Register
-                    </Link>
-                    <Link href="/login" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
-                        Login
-                    </Link>
+                    <Show when={!sessionStorage.getItem("token")}>
+                        <Link href="/register" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
+                            Register
+                        </Link>
+                        <Link href="/login" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
+                            Login
+                        </Link>
+                    </Show>
                 </div>
             </div>
 
