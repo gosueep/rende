@@ -50,7 +50,7 @@ export default function NavBar(props: any) {
             {/* <!-- Mobile menu, show/hide based on menu state. --> */}
             <div class="sm:hidden" id="mobile-menu">
                 <div class="space-y-1 px-2 pb-3 pt-2">
-                    <Link href={global.isLoggedIn? `/dashboard`: '/userlogin'} class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">
+                    <Link href='/dashboard' class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">
                         Post Event
                     </Link>
                     <Link href="/register" class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">

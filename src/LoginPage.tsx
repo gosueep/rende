@@ -7,6 +7,8 @@ import { UserAuthType } from './UserTypes'
 const LoginPage: Component<{}> = () => {
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
+  const [org, setOrg] = createSignal('')
+  const [name, setName] = createSignal('')
   const navigate = useNavigate()
   // const [user, setUser] = useContext(UserContext)
   // const [token, setToken] = useContext(UserTokenCtx)
@@ -17,7 +19,9 @@ const LoginPage: Component<{}> = () => {
       method: "POST",
       body: JSON.stringify({
         email: email(),
-        password: password()
+        password: password(),
+        name: name(),
+        org: org(),
       })
     })
 
@@ -49,6 +53,30 @@ const LoginPage: Component<{}> = () => {
     <div class="flex justify-center items-center h-screen bg-gray-100">
       <form class="bg-white rounded-lg p-8 shadow-md w-1/5 min-w-fit">
         <h2 class="text-2xl font-medium mb-6">Welcome to Rende</h2>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2" for="email">
+            Name
+          </label>
+          <input
+            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="name" type="text" placeholder="Enter your name"
+            required
+            value={name()}
+            onInput={(e) => setName(e.currentTarget.value)}
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-bold mb-2" for="email">
+            Organization
+          </label>
+          <input
+            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="org" type="text" placeholder="Enter your organization"
+            required
+            value={org()}
+            onInput={(e) => setOrg(e.currentTarget.value)}
+          />
+        </div>
         <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2" for="email">
             Email
