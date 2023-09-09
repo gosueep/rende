@@ -1,21 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- USERS
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(256) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'user',
-    verified BOOLEAN NOT NULL DEFAULT FALSE
-    -- created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    -- updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+DROP TABLE IF EXISTS public.users;
+CREATE TABLE public.users (
+    id uuid not null references auth.users(id) on delete cascade,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL
 );
+alter table public.users enable row level security;
 
 
 -- ORG
-DROP TABLE IF EXISTS org CASCADE;
+DROP TABLE IF EXISTS public.org CASCADE;
 CREATE TABLE org (
     id BIGSERIAL PRIMARY KEY,
     name varchar(256),
@@ -26,8 +22,8 @@ CREATE TABLE org (
 
 
 -- EVENT
-DROP TABLE IF EXISTS event CASCADE;
-CREATE TABLE event (
+DROP TABLE IF EXISTS public.event CASCADE;
+CREATE TABLE public.event (
     id BIGSERIAL PRIMARY KEY,
     org_id BIGINT,
     name varchar(256),
