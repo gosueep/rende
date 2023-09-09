@@ -1,4 +1,5 @@
 import { Component, createSignal, onMount } from 'solid-js';
+import { useNavigate } from '@solidjs/router'
 import type { EventType, LocationType } from "./EventTypes"
 
 type Club = {
@@ -27,42 +28,73 @@ const EventCreator = (props: { clubID?: number }) => {
   const [eventDescription, setEventDescription] = createSignal('');
   const [meetingLocation, setMeetingLocation] = createSignal('');
   const [startTime, setStartTime] = createSignal('');
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
 
-    let location: LocationType = await (await fetch('/get_or_create_location', {
-      method: 'POST',
+    // let location: LocationType = await (await fetch('/get_or_create_location', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     description: meetingLocation(),
+    //   }),
+    // })).json();
+
+    // await fetch('/post_event', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     club_id: props.clubID,
+    //     location_id: location.id,
+    //     name: eventName(),
+    //     description: eventDescription(),
+    //     start: new Date(startTime()).getTime(),
+    //     categories: [],
+    //     is_recurring: false,
+    //   }),
+    // });
+    console.log("Bearer " + sessionStorage.getItem('token'))
+    const resp = await fetch (`http://localhost:8000/api/post_event`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Authorization": "Bearer " + sessionStorage.getItem('token'),
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        description: meetingLocation(),
-      }),
-    })).json();
+        event: {
+          org_id: "99",
+          name: eventName(),
+          description: eventDescription(),
+          location: meetingLocation(),
+          date: new Date(startTime()).toISOString(),
+          photo_url: "",
+          is_recurring: false,
+          uid: sessionStorage.getItem('uid')
+        }
+     })
+    })
 
-    await fetch('/post_event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        club_id: props.clubID,
-        location_id: location.id,
-        name: eventName(),
-        description: eventDescription(),
-        start: new Date(startTime()).getTime(),
-        categories: [],
-        is_recurring: false,
-      }),
-    });
+    const results = await resp.json()
+    console.log(resp)
+    console.log(results)
+    if(resp.status != 200) {
+      alert(results)
+      return
+    }
 
+    
     alert('Event Submitted')
-
+    
     setEventName('');
     setEventDescription('');
     setMeetingLocation('');
     setStartTime('');
+    navigate("/")
   };
 
   return (
@@ -144,44 +176,52 @@ const EventCreator = (props: { clubID?: number }) => {
 const DashboardPage: Component<{}> = () => {
   const [club, setClub] = createSignal<Club>();
   const [clubID, setClubID] = createSignal<number>(0);
+  const navigate = useNavigate()
 
-  onMount(() => {
-    fetch(`/get_club_by_organizer/${global.userID}`)
-      .then((response) => response.json())
-      .then((club) => {
-        setClubID(club.club);
-        return fetch(`/get_clubs`)
-          .then((response) => response.json())
-          .then((clubs) => {
-            return clubs.clubs.find((club: Club) => {
-              return club.id === clubID();
-            });
-          })
-          .then((club) => {
-            console.log(club);
-            setClub(club);
-          });
-      });
-  });
+  if(!sessionStorage.getItem('token')) {
+    navigate('/login')
+  }
+
+  // onMount(() => {
+  //   fetch(`/get_club_by_organizer/${global.userID}`)
+  //     .then((response) => response.json())
+  //     .then((club) => {
+  //       setClubID(club.club);
+  //       return fetch(`/get_clubs`)
+  //         .then((response) => response.json())
+  //         .then((clubs) => {
+  //           return clubs.clubs.find((club: Club) => {
+  //             return club.id === clubID();
+  //           });
+  //         })
+  //         .then((club) => {
+  //           console.log(club);
+  //           setClub(club);
+  //         });
+  //     });
+  // });
 
   return (
-    <div class="bg-white min-h-screen flex flex-col">
-      <header class="bg-blue-600 shadow text-white">
-        <div class="container mx-auto px-4 py-2">
-          <h1 class="text-3xl font-bold">Dashboard</h1>
-        </div>
-      </header>
-      <main class="flex-grow container mx-auto py-8">
-        <div class="flex flex-wrap -mx-4">
-          <div class="w-full md:w-3/4 p-4">
-            <ClubPage club={club()} />
-          </div>
-          <div class="w-full md:w-1/4 p-4">
-            <EventCreator clubID={clubID()} />
-          </div>
-        </div>
-      </main>
+    <div class="flex justify-center items-center h-screen bg-gray-100">
+      <EventCreator clubID={clubID()} />
     </div>
+    // <div class="bg-white min-h-screen flex flex-col">
+    //   {/* <header class="bg-blue-600 shadow text-white">
+    //     <div class="container mx-auto px-4 py-2">
+    //       <h1 class="text-3xl font-bold">Dashboard</h1>
+    //     </div>
+    //   </header> */}
+    //   <main class="flex-grow container mx-auto py-8">
+    //     <div class="flex flex-wrap -mx-4">
+    //       {/* <div class="w-full md:w-3/4 p-4">
+    //         <ClubPage club={club()} />
+    //       </div> */}
+    //       <div class="w-full md:w-1/4 p-4">
+    //         <EventCreator clubID={clubID()} />
+    //       </div>
+    //     </div>
+    //   </main>
+    // </div>
   );
 };
 

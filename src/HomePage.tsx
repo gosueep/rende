@@ -1,10 +1,12 @@
 import { Link, useSearchParams } from "@solidjs/router"
-import { Component, createResource, For, Show, Suspense } from "solid-js"
+import { Component, createResource, For, Show, Suspense, useContext } from "solid-js"
 import { createSignal, createEffect, onMount } from 'solid-js';
 
 import NavBar from "./NavBar"
 import SearchBar from "./SearchBar"
 import EventCard from "./EventCard"
+
+import { UserContext } from ".";
 
 import type { EventType } from "./EventTypes"
 import { fetchEvents, EventListType } from "./EventTypes"
@@ -17,15 +19,6 @@ export type SearchProps = {
 	showPast: boolean,
 	is_recurring: boolean,
 }
-
-// function search(items : Array<EventType>, props : SearchProps) {
-// 	return items.filter((item) => {
-// 		if (item.info.description.includes(props.query) ||
-// 			item.info.name.includes(props.query)) {
-
-// 		}
-// 	})
-// }
 
 function searchFilterItem(item: EventType, query: string, showPast: boolean) {
 	const inSearch = (
@@ -52,7 +45,7 @@ function thisMonth(start : Date, showPast: boolean) {
 }
 
 const SearchPage: Component<{}> = () => {
-	const [fetchedEvents] = createResource<EventType[], number>(20, fetchEvents)
+	const [fetchedEvents] = createResource<EventType[], number>(1000, fetchEvents)
 	const [filteredEvents, setFilteredEvents] = createSignal(fetchedEvents)
 	const [searchQuery, setSearchQuery] = createSignal('')
 	const [searchProps, setSearchProps] = createSignal<SearchProps>({
@@ -76,9 +69,15 @@ const SearchPage: Component<{}> = () => {
 		setShowPast(!showPast())
 	}
 
+	const token = useContext(UserContext);
+
 	return <>
 		<NavBar onSearchChange={handleSearch} onShowPastEventsClick={enablePastEvents}></NavBar>
 		<div class="flex flex-row">
+			{/* <p>HI</p>
+			<p>{useContext(UserContext)?.email}</p>
+			<p>{useContext(UserContext)?.token}</p>
+			<p>{useContext(UserContext)?.uid}</p> */}
 			{/* <div class="flex-none" id="dashboard-left">
 				Dashboard
 			</div> */}
