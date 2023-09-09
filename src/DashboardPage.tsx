@@ -59,7 +59,7 @@ const EventCreator = (props: { clubID?: number }) => {
     //   }),
     // });
     console.log("Bearer " + sessionStorage.getItem('token'))
-    const resp = await fetch (`http://localhost:8000/api/post_event`, {
+    const resp = await fetch (`/api/post_event`, {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + sessionStorage.getItem('token'),

@@ -13,7 +13,7 @@ const RegisterPage: Component<{}> = () => {
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
-    const resp = await fetch (`http://localhost:8000/api/register`, {
+    const resp = await fetch (`/api/register`, {
       method: "POST",
       body: JSON.stringify({
         email: email(),
