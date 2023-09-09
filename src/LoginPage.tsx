@@ -13,7 +13,7 @@ const LoginPage: Component<{}> = () => {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
-    const resp = await fetch (`http://localhost:8000/api/login`, {
+    const resp = await fetch (`/api/login`, {
       method: "POST",
       body: JSON.stringify({
         email: email(),
