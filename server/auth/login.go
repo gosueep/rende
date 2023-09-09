@@ -36,6 +36,7 @@ func UserLogin(c *gin.Context) {
 		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed signing in user %s \n%s", db.Sad(), err))
 	} else {
+		// c.SetCookie("token", user.AccessToken, 3600, "/", "localhost", true, false)
 		c.JSON(http.StatusOK, gin.H{
 			"msg": fmt.Sprintf("User successfully signed in %s", db.Happy()),
 			"user": user,

@@ -35,13 +35,13 @@ export default function NavBar(props: any) {
             {/* Right side / Buttons */}
             <div class="hidden sm:ml-6 sm:block">
                 <div class="flex space-x-4">
-                    <Link href={global.isLoggedIn? `/dashboard`: '/userlogin'} class="text-sm px-3 py-2 font-medium text-white hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
+                    <Link href='/dashboard' class="text-sm px-3 py-2 font-medium text-white hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
                         Post Event
                     </Link>
                     <Link href="/register" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
                         Register
                     </Link>
-                    <Link href="/userlogin" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
+                    <Link href="/login" class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
                         Login
                     </Link>
                 </div>
@@ -56,7 +56,7 @@ export default function NavBar(props: any) {
                     <Link href="/register" class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">
                         Register
                     </Link>
-                    <Link href="/userlogin" class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">
+                    <Link href="/login" class="text-white hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">
                         Login
                     </Link>
                 </div>

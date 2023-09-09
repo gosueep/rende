@@ -21,6 +21,7 @@ type Event struct {
 	Location    string    `json:"location"`
 	PhotoURL    string    `json:"photo_url"`
 	IsRecurring bool      `json:"is_recurring"`
+	Uid			string 	 `json:"uid"`
 }
 
 func GetEvent(c *gin.Context) {
@@ -119,11 +120,11 @@ func PostEvent(c *gin.Context) {
 	var newEvent Event = json.NewEvent
 
 	commandTag, err := db.Conn.Exec(context.Background(),
-		`INSERT INTO public.event (org_id, name, description, date, location, photo_url, is_recurring) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		`INSERT INTO public.event (org_id, name, description, date, location, photo_url, is_recurring, uid) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		newEvent.Org_id, newEvent.Name, newEvent.Description, 
 		newEvent.Date, newEvent.Location, 
-		newEvent.PhotoURL, newEvent.IsRecurring)
+		newEvent.PhotoURL, newEvent.IsRecurring, newEvent.Uid)
 
 	if err != nil {
 		fmt.Println(commandTag, err)
