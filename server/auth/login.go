@@ -18,6 +18,8 @@ func UserLogin(c *gin.Context) {
 		// Username string `json:"username" binding:"required"`	
 		Password string `json:"password" binding:"required"`
 		Email string `json:"email" binding:"required"`
+		Name string `json:"name" binding:"required"`
+		Organization string `json:"org"`
 	}
 
 	err := c.BindJSON(&json)
@@ -37,6 +39,17 @@ func UserLogin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed signing in user %s \n%s", db.Sad(), err))
 	} else {
 		// c.SetCookie("token", user.AccessToken, 3600, "/", "localhost", true, false)
+				// fmt.Println(user)
+		// fmt.Println(user.ID)
+		commandTag, err := db.Conn.Exec(context.Background(),
+			`INSERT INTO public.users (id, name, org, email) 
+			VALUES ($1, $2, $3, $4)`,
+			user.User.ID, json.Name, json.Organization, json.Email)
+		if err != nil {
+			fmt.Println(commandTag, err)
+			// return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"msg": fmt.Sprintf("User successfully signed in %s", db.Happy()),
 			"user": user,
