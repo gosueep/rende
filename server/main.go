@@ -17,9 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	supa "github.com/nedpals/supabase-go"
 )
 
 func main() {
@@ -31,16 +29,11 @@ func main() {
 	db.Conn, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {log.Fatal("Error connecting to Database, check environment credentials in .env", err)}
 
-	// setup AWS
-	conf := &aws.Config{Region: aws.String(os.Getenv("COGNITO_REGION"))}
-	sess, err := session.NewSession(conf)
-	if err != nil {log.Fatal("Error creating AWS Session")}
-	auth.Cognito = auth.CognitoInfo{
-		Client: cognito.New(sess),
-		UserPoolID: os.Getenv("COGNITO_USER_POOL_ID"),
-		AppClientID: os.Getenv("COGNITO_APP_CLIENT_ID"),
-		AppClientSecret: os.Getenv("COGNITO_APP_CLIENT_SECRET"),
-	}
+	// setup supabase
+	supabaseURL := os.Getenv("SUPABASE_URL")
+	supabaseKey := os.Getenv("SUPABASE_KEY")
+	auth.Supabase = supa.CreateClient(supabaseURL, supabaseKey)
+	auth.JWT_SECRET = []byte(os.Getenv("JWT_SECRET"))
 
 
 	// Router
@@ -51,7 +44,6 @@ func main() {
 	// 	AllowOrigins: ,
 	// }))
 
-	// Add auth middleware
 
 	router.Use(static.Serve("/", static.LocalFile("../public", false)))
 	router.NoRoute(func(c *gin.Context) {
@@ -66,24 +58,30 @@ func main() {
 		api.POST("get_orgs", org.GetOrgs)
 		api.GET("get_org/:id", org.GetOrgById)
 		api.POST("get_org/:id", org.GetOrgById)
-		api.POST("create_org", org.CreateOrg)
-		api.POST("edit_org")
-
+		
 		// Events
 		api.POST("get_event/:id", event.GetEvent)
 		api.GET("get_events_by_org/:org_id", event.GetEventsByOrg)
 		api.POST("get_events_by_org/:org_id", event.GetEventsByOrg)
 		api.GET("get_latest_events/:amount", event.GetLatestEvents)
 		api.POST("get_latest_events/:amount", event.GetLatestEvents)
-		api.POST("post_event", event.PostEvent)
-		api.POST("edit_event")
-
+		
 		// User
-		api.POST("login")
+		api.POST("login", auth.UserLogin)
 		api.POST("register", auth.RegisterUser)
+		
+		// Auth Routes
+		authRoutes := api.Group("/", auth.CheckAuth())
+		{
+			// Create / edit Orgs
+			authRoutes.POST("create_org", org.CreateOrg)
+			authRoutes.POST("edit_org")
+			
+			// Post/edit events
+			authRoutes.POST("post_event", event.PostEvent)
+			authRoutes.POST("edit_event")
+		}
 	}
-	
-	// TODODODODOD
 
 	// Don't trust all proxies
 

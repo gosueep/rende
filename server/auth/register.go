@@ -3,16 +3,14 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"context"
 
 	"rende/db"
 	// "rende/event"
 	// "rende/org"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	supa "github.com/nedpals/supabase-go"
 )
 
 
@@ -33,45 +31,17 @@ func RegisterUser(c *gin.Context) {
 	} 
 
 	// User to be created
-	user := &cognito.SignUpInput{
-		Username: aws.String(json.Username),
-		Password: aws.String(json.Password),
-		ClientId: aws.String(Cognito.AppClientID),
-		UserAttributes: []*cognito.AttributeType{
-			{
-				Name: aws.String("email"),
-				Value: aws.String(json.Email),
-			},
-			{
-				Name: aws.String("name"),
-				Value: aws.String(json.Name),
-			},
-			{
-				Name: aws.String("custom:Organization"),
-				Value: aws.String(json.Organization),
-			},
-		},
-		SecretHash: aws.String(CognitoSecretHash(json.Username)),
-	}
-
-	// Call Cognito to create user
-	_, err = Cognito.Client.SignUp(user)
+	user, err := Supabase.Auth.SignUp(context.Background(), supa.UserCredentials{
+		Email:    json.Email,
+		Password: json.Password,
+	})
 	if err != nil {
-
 		fmt.Println(err)
-
-		if aerr, ok := err.(awserr.Error); ok {
-			msg := aerr.Message()
-			// switch aerr.Code() {
-			// case cognito.ErrCodeUsernameExistsException:
-			// 	msg = fmt.Sprintf()
-			// case cognito.ErrCodeInvalidParameterException:
-			// 	exitErrorf("object with key %s does not exist in bucket %s", os.Args[2], os.Args[1])
-			// }
-			c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed creating user %s \n%s", db.Sad(), msg))
-		}
-
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed creating user %s \n%s", db.Sad(), err))
 	} else {
-		c.JSON(http.StatusOK, fmt.Sprintf("User successfully created %s", db.Happy()))
+		c.JSON(http.StatusOK, gin.H{
+			"msg": fmt.Sprintf("User successfully created %s", db.Happy()),
+			"user": user,
+		})
 	}
 }
