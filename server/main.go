@@ -80,6 +80,11 @@ func main() {
 			// Post/edit events
 			authRoutes.POST("post_event", event.PostEvent)
 			authRoutes.POST("edit_event")
+
+			// Update User Info
+			authRoutes.POST("update_user", auth.UpdateUserInfo)
+
+			authRoutes.POST("logout", auth.UserLogout)
 		}
 	}
 

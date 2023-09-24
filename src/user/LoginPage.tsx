@@ -1,17 +1,12 @@
 import { Component, createSignal, useContext } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
-import { UserContext, UserTokenCtx } from '.'
-import { UserAuthType } from './UserTypes'
+import toast, { Toaster } from 'solid-toast'
 
 
 const LoginPage: Component<{}> = () => {
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
-  const [org, setOrg] = createSignal('')
-  const [name, setName] = createSignal('')
   const navigate = useNavigate()
-  // const [user, setUser] = useContext(UserContext)
-  // const [token, setToken] = useContext(UserTokenCtx)
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
@@ -19,64 +14,29 @@ const LoginPage: Component<{}> = () => {
       method: "POST",
       body: JSON.stringify({
         email: email(),
-        password: password(),
-        name: name(),
-        org: org(),
+        password: password()
       })
     })
 
     const results = await resp.json()
-    // console.log(resp)
-    // console.log(results)
     if(resp.status != 200) {
       alert(results)
       return
     }
-
-    // console.log(results)
-    // console.log(results['user']) 
-    // console.log(results.user)
-    // console.log(results.user.access_token)
-    // const t = (results.access_token)
-    sessionStorage.setItem('token', results.user.access_token)
-    sessionStorage.setItem('uid', results.user.user.id)
-    // setToken(t)
+    // document.cookie = `token=${results.user.access_token}; uid=${results.user.user.id}; SameSite=None; Secure`
     navigate("/")
-  }
-
-  if(sessionStorage.getItem('token')) {
-    alert("Already Logged in")
-    navigate('/')
   }
 
   return (
     <div class="flex justify-center items-center h-screen bg-gray-100">
       <form class="bg-white rounded-lg p-8 shadow-md w-1/5 min-w-fit">
-        <h2 class="text-2xl font-medium mb-6">Welcome to Rende</h2>
-        <div class="mb-4">
-          <label class="block text-gray-700 font-bold mb-2" for="email">
-            Name
-          </label>
-          <input
-            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="name" type="text" placeholder="Enter your name"
-            required
-            value={name()}
-            onInput={(e) => setName(e.currentTarget.value)}
-          />
-        </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 font-bold mb-2" for="email">
-            Organization
-          </label>
-          <input
-            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="org" type="text" placeholder="Enter your organization"
-            required
-            value={org()}
-            onInput={(e) => setOrg(e.currentTarget.value)}
-          />
-        </div>
+        <h2 class="text-2xl font-medium mb-6">Welcome back!</h2>
+        <div>
+				<button onClick={() => toast.success('test toast')}>TEST TOAST</button>
+				<Toaster
+					position="top-center"
+				/>
+			</div>
         <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2" for="email">
             Email

@@ -5,7 +5,9 @@ DROP TABLE IF EXISTS public.users;
 CREATE TABLE public.users (
     id uuid not null references auth.users(id) on delete cascade,
     first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL
+    last_name VARCHAR(100) NOT NULL,
+    org_name VARCHAR(100),
+    org_id uuid
 );
 alter table public.users enable row level security;
 

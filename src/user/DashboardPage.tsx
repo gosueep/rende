@@ -1,6 +1,6 @@
 import { Component, createSignal, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router'
-import type { EventType, LocationType } from "./EventTypes"
+import type { EventType, LocationType } from "../event/EventTypes"
 
 type Club = {
   id: number;
@@ -61,10 +61,10 @@ const EventCreator = (props: { clubID?: number }) => {
     console.log("Bearer " + sessionStorage.getItem('token'))
     const resp = await fetch (`/api/post_event`, {
       method: "POST",
-      headers: {
-        "Authorization": "Bearer " + sessionStorage.getItem('token'),
-        "Content-Type": "application/json"
-      },
+      // headers: {
+      //   "Authorization": "Bearer " + sessionStorage.getItem('token'),
+      //   "Content-Type": "application/json"
+      // },
       body: JSON.stringify({
         event: {
           org_id: "99",
@@ -177,10 +177,6 @@ const DashboardPage: Component<{}> = () => {
   const [club, setClub] = createSignal<Club>();
   const [clubID, setClubID] = createSignal<number>(0);
   const navigate = useNavigate()
-
-  if(!sessionStorage.getItem('token')) {
-    navigate('/login')
-  }
 
   // onMount(() => {
   //   fetch(`/get_club_by_organizer/${global.userID}`)
