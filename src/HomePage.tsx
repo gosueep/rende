@@ -4,12 +4,12 @@ import { createSignal, createEffect, onMount } from 'solid-js';
 
 import NavBar from "./NavBar"
 import SearchBar from "./SearchBar"
-import EventCard from "./EventCard"
+import EventCard from "./event/EventCard"
 
 import { UserContext } from ".";
 
-import type { EventType } from "./EventTypes"
-import { fetchEvents, EventListType } from "./EventTypes"
+import type { EventType } from "./event/EventTypes"
+import { fetchEvents, EventListType } from "./event/EventTypes"
 
 
 export type SearchProps = {
@@ -70,9 +70,11 @@ const SearchPage: Component<{}> = () => {
 	}
 
 	const token = useContext(UserContext);
-
 	return <>
 		<NavBar onSearchChange={handleSearch} onShowPastEventsClick={enablePastEvents}></NavBar>
+		{/* <div class="hidden sm:ml-6 sm:block items-center w-2/5 justify-center">
+			{<SearchBar onSearchChange={handleSearch} onShowPastEventsClick={enablePastEvents}></SearchBar>}
+		</div> */}
 		<div class="flex flex-row">
 			{/* <p>HI</p>
 			<p>{useContext(UserContext)?.email}</p>

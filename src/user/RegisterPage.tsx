@@ -1,42 +1,53 @@
 import { Component, createSignal } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
+import toast, { Toaster } from 'solid-toast';
 
 
 const RegisterPage: Component<{}> = () => {
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
-  // const [name, setName] = createSignal('')
-  // const [org, setOrg] = createSignal('')
-  // const [userID, setUserID] = createSignal('')
   const navigate = useNavigate()
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
-    const resp = await fetch (`/api/register`, {
+    const resp = await fetch(`/api/register`, {
       method: "POST",
       body: JSON.stringify({
         email: email(),
         password: password(),
-        // name: name(),
-        // org: org(),
       })
     })
 
     const results = await resp.json()
     console.log(resp)
     console.log(results)
-    if(resp.status != 200) {
+    if (resp.status != 200) {
       alert(results)
       return
     }
-
-    sessionStorage.clear()
-    navigate("/login")
-
-    // .then(out => console.log(out))
-    console.log()
-    // return output
+    else {
+      console.log("login")
+      // ABSTRACT OUT
+      const loginResp = await fetch(`/api/login`, {
+        method: "POST",
+        body: JSON.stringify({
+          email: email(),
+          password: password()
+        })
+      })
+      const loginResults = await loginResp.json()
+      console.log(loginResp)
+      console.log(loginResults)
+  
+      if (loginResp.status != 200) {
+        alert("failed to login")
+        navigate("/login")
+      }
+      else {
+        navigate("/first_login")
+      }
+    }
   }
 
   return (
@@ -68,7 +79,7 @@ const RegisterPage: Component<{}> = () => {
           />
         </div>
         <div class='flex flex-col items-center'>
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit" onClick={handleSubmit}>
             Create Account
           </button>

@@ -18,8 +18,6 @@ func UserLogin(c *gin.Context) {
 		// Username string `json:"username" binding:"required"`	
 		Password string `json:"password" binding:"required"`
 		Email string `json:"email" binding:"required"`
-		Name string `json:"name" binding:"required"`
-		Organization string `json:"org"`
 	}
 
 	err := c.BindJSON(&json)
@@ -38,21 +36,35 @@ func UserLogin(c *gin.Context) {
 		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed signing in user %s \n%s", db.Sad(), err))
 	} else {
-		// c.SetCookie("token", user.AccessToken, 3600, "/", "localhost", true, false)
-				// fmt.Println(user)
-		// fmt.Println(user.ID)
-		commandTag, err := db.Conn.Exec(context.Background(),
-			`INSERT INTO public.users (id, name, org, email) 
-			VALUES ($1, $2, $3, $4)`,
-			user.User.ID, json.Name, json.Organization, json.Email)
-		if err != nil {
-			fmt.Println(commandTag, err)
-			// return
-		}
+		
+		// TODO - MAKE MORE SECURE LATER - HTTP only, path and domain
+		c.SetCookie("token", user.AccessToken, 3600, "", "", true, false)
 
 		c.JSON(http.StatusOK, gin.H{
 			"msg": fmt.Sprintf("User successfully signed in %s", db.Happy()),
 			"user": user,
 		})
+	}
+}
+
+func UserLogout(c *gin.Context) {
+	// Set token to an expired cookie
+	c.SetCookie("token", "", -1, "", "", true, false)
+	
+	// Get token string
+	tokenString, exists := c.Get("tokenString")
+	if !exists {
+		fmt.Println("Token required to logout")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "You must provide a token")
+		return
+	}
+	
+	// Sign-out user
+	err := Supabase.Auth.SignOut(context.Background(), tokenString.(string))
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed signing in user %s \n%s", db.Sad(), err))
+	} else {
+		c.JSON(http.StatusOK, fmt.Sprintf("User successfully signed out %s", db.Happy()))
 	}
 }
