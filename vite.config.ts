@@ -12,9 +12,8 @@ export default defineConfig({
     solidPlugin(),
   ],
   server: {
-    port: 3000,
+    port: 9000,
   },
-  root: 'public',
   build: {
     outDir: '../dist',
   },

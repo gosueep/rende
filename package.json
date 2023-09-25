@@ -9,7 +9,7 @@
 		"dev:vite": "vite serve",
 		"dev:tailwind": "npx tailwindcss -i ./src/index.css -o ./public/index.css --watch",
 		"build": "npm-run-all build:tailwind build:vite",
-		"build:vite": "vite build",
+		"build:vite": "vite build --emptyOutDir",
 		"build:tailwind": "npx tailwindcss -i ./src/index.css -o ./public/index.css --minify",
 		"preview": "vite preview"
 	},
