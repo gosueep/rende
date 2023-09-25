@@ -3,19 +3,21 @@
 	"version": "1.0.0",
 	"description": "Events App",
 	"main": "index.tsx",
+	"type": "module",
 	"scripts": {
-		"dev": "npm-run-all --parallel dev:webpack dev:tailwind",
-		"dev:webpack": "webpack serve --mode development",
+		"dev": "npm-run-all --parallel dev:vite dev:tailwind",
+		"dev:vite": "vite serve",
 		"dev:tailwind": "npx tailwindcss -i ./src/index.css -o ./public/index.css --watch",
-		"build": "npm-run-all --parallel build:webpack build:tailwind",
-		"build:webpack": "webpack --mode production",
-		"build:tailwind": "npx tailwindcss -i ./src/index.css -o ./public/index.css --minify"
+		"build": "npm-run-all build:tailwind build:vite",
+		"build:vite": "vite build --emptyOutDir",
+		"build:tailwind": "npx tailwindcss -i ./src/index.css -o ./public/index.css --minify",
+		"preview": "vite preview"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gosueep/rende.git"
 	},
-	"author": "gosuep",
+	"author": "gosueep",
 	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/gosueep/rende/issues"
@@ -25,18 +27,15 @@
 		"@solidjs/router": "^0.8.3",
 		"@types/react": "^18.2.21",
 		"@types/react-dom": "^18.2.7",
-		"babel-loader": "^9.1.3",
-		"babel-preset-solid": "^1.7.7",
 		"npm-run-all": "^4.1.5",
 		"solid-js": "^1.7.11",
-		"solid-start": "^0.3.5",
+		"solid-start": "^0.3.6",
 		"solid-toast": "^0.5.0",
 		"tailwindcss": "^3.3.3",
 		"ts-loader": "^9.4.4",
 		"typescript": "^5.2.2",
-		"webpack": "^5.88.2",
-		"webpack-cli": "^5.1.4",
-		"webpack-dev-server": "^4.15.1"
+		"vite": "^4.4.9",
+		"vite-plugin-solid": "^2.7.0"
 	},
 	"dependencies": {
 		"tailwind-scrollbar-hide": "^1.1.7"

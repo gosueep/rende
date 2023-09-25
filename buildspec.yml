@@ -38,7 +38,8 @@ artifacts:
   - appspec.yml
   - server/**/*
   - scripts/*
-  - public/**/*
+  # - public/**/*
+  - dist/**/*
   name: rende-prod-$(date +%Y-%m-%d)
 
 
