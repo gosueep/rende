@@ -45,7 +45,7 @@ func main() {
 	// }))
 
 
-	router.Use(static.Serve("/", static.LocalFile("../public", false)))
+	router.Use(static.Serve("/", static.LocalFile("../dist", false)))
 	router.NoRoute(func(c *gin.Context) {
 		c.Request.URL.Path = "/"
 		router.HandleContext(c)
