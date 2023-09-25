@@ -3,4 +3,5 @@
 
 public/**/*.js
 public/**/*.css
+/dist/
 .vscode

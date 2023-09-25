@@ -72,9 +72,6 @@ export default function NavBar(props: any) {
                                 Sign out
                             </button>
                         </Show>
-                        <button onClick={location.reload} class="text-sm px-3 py-2 font-medium border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-gray-700 mt-4 lg:mt-0">
-                            Sign out
-                        </button>
                     </div>
                 </div>
 
