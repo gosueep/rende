@@ -76,13 +76,6 @@ const SearchPage: Component<{}> = () => {
 			{<SearchBar onSearchChange={handleSearch} onShowPastEventsClick={enablePastEvents}></SearchBar>}
 		</div> */}
 		<div class="flex flex-row">
-			{/* <p>HI</p>
-			<p>{useContext(UserContext)?.email}</p>
-			<p>{useContext(UserContext)?.token}</p>
-			<p>{useContext(UserContext)?.uid}</p> */}
-			{/* <div class="flex-none" id="dashboard-left">
-				Dashboard
-			</div> */}
 			<div class="flex-1" id="content">
 				<div class="flex flex-col">
 					<div class="grid gap-8 text-neutral-600 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-5">

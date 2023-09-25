@@ -43,10 +43,10 @@ const EventCard = (props: any) => {
                 </div>
                 <div class="px-6 py-4 flex flex-col justify-between flex-grow">
                     <div>
-                        <h2 class="font-bold text-xl mb-2">Name: {event.name}</h2>
-                        <h3 class="text-sm mb-2">Location: {event.location}</h3>
-                        <h3 class="text-sm mb-2">Start: {dateString(event.date)}</h3>
-                        <p class="text-sm mb-2">Description: {event.description}</p>
+                        <h2 class="font-bold text-xl mb-2" id="name">{event.name}</h2>
+                        <h3 class="text-sm mb-2" id='start'>{dateString(event.date)}</h3>
+                        <h3 class="text-sm mb-2" id='location'>Location: {event.location}</h3>
+                        <p class="text-sm mb-2" id='description'>{event.description}</p>
                     </div>
                 </div>
                 <div class="px-6 pt-4 pb-2">
