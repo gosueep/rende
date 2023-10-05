@@ -18,7 +18,7 @@ func UpdateUserInfo(c *gin.Context) {
 		Organization string `json:"org" binding:"required"`
 	}
 
-	err := c.BindJSON(&json)
+	err := c.ShouldBindJSON(&json)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, fmt.Sprintf("User update request malformed %s", db.Sad()))

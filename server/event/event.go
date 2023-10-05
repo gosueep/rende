@@ -54,6 +54,7 @@ func GetLatestEvents(c *gin.Context) {
 	rows, err := db.Conn.Query(context.Background(),
 		`SELECT id, org_id, name, description, date, COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
 		FROM public.event 
+		WHERE id > 84
 		ORDER BY date ASC 
 		LIMIT $1`, numEvents)
 	if err != nil {
@@ -111,7 +112,7 @@ func PostEvent(c *gin.Context) {
 	var json struct {
 		NewEvent Event `json:"event" binding:"required"`
 	}
-	err := c.Bind(&json)
+	err := c.ShouldBindJSON(&json)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -123,6 +124,11 @@ func PostEvent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, "uid not found")
 	}
 
+	// fmt.Println(`INSERT INTO public.event (org_id, name, description, date, location, photo_url, is_recurring, uid) 
+	// VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`)
+	// fmt.Println(newEvent.Org_id, newEvent.Name, newEvent.Description, 
+	// 	newEvent.Date, newEvent.Location, 
+	// 	newEvent.PhotoURL, newEvent.IsRecurring, uid)
 	commandTag, err := db.Conn.Exec(context.Background(),
 		`INSERT INTO public.event (org_id, name, description, date, location, photo_url, is_recurring, uid) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,

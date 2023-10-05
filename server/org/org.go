@@ -83,8 +83,8 @@ func CreateOrg(c *gin.Context) {
 func JoinOrg(c *gin.Context) {
 
 	var json struct {
-		uid string `json:"uid" binding: "required"`
-		org_id string `json:"org_id" binding: "required"`
+		Uid string `json:"uid" binding: "required"`
+		Org_id string `json:"org_id" binding: "required"`
 	}
 
 	err := c.BindJSON(&json)
@@ -94,7 +94,7 @@ func JoinOrg(c *gin.Context) {
 
 	commandTag, err := db.Conn.Exec(context.Background(),
 		"INSERT INTO public.user_org_xref (user_id, org_id) VALUES ($1, $2)",
-		json.uid, json.org_id)
+		json.Uid, json.Org_id)
 	
 	if err != nil {
 		fmt.Println(commandTag, err)

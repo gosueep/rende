@@ -3,7 +3,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	// "strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -30,6 +29,7 @@ func CheckAuth() gin.HandlerFunc {
 		tokenString, err := c.Cookie("token")
 		if err != nil || tokenString == "" {
 			fmt.Println("Malformed token?")
+			fmt.Println(err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, "You must provide a token")
 			return
 		}
