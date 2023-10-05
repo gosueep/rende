@@ -22,6 +22,17 @@ CREATE TABLE org (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- DROP TABLE IF EXISTS public.event_org_xref CASCADE;
+-- CREATE TABLE event_org_xref (
+--     id BIGINT not null references public.org(id) on delete cascade,
+-- );
+
+DROP TABLE IF EXISTS public.user_org_xref CASCADE;
+CREATE TABLE user_org_xref (
+    user_id uuid not null references auth.users(id) on delete cascade,
+    org_id BIGINT not null references public.org(id) on delete cascade,
+);
+
 
 -- EVENT
 DROP TABLE IF EXISTS public.event CASCADE;

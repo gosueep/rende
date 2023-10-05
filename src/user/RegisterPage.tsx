@@ -23,7 +23,7 @@ const RegisterPage: Component<{}> = () => {
     console.log(resp)
     console.log(results)
     if (resp.status != 200) {
-      alert(results)
+      toast.error(results)
       return
     }
     else {
@@ -41,7 +41,7 @@ const RegisterPage: Component<{}> = () => {
       console.log(loginResults)
   
       if (loginResp.status != 200) {
-        alert("failed to login")
+        toast.error("failed to login")
         navigate("/login")
       }
       else {
@@ -52,6 +52,7 @@ const RegisterPage: Component<{}> = () => {
 
   return (
     <div class="flex justify-center items-center h-screen bg-gray-100">
+      <Toaster position="top-center" />
       <form class="bg-white rounded-lg p-8 shadow-md w-1/5 min-w-fit">
         <h2 class="text-2xl font-medium mb-6">Welcome to Rende</h2>
         <div class="mb-4">

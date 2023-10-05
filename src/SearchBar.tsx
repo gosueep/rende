@@ -23,26 +23,6 @@ export default function SearchBar(props: any) {
 						</button>
 					</div>
 				</div>
-				{/* Add back filtering when we have time. For MVP, maybe not necessary... */}
-				<div class="flex-none" id="categories">
-					<button 
-						type="submit" 
-						class="p-2 align-top text-md font-medium text-white bg-yellow-600 border border-yellow-600"
-						onClick={props.onShowPastEventsClick}
-					>
-						<span>Old Events</span>
-					</button>
-				</div>
-				{/* <div class="flex-none" id="filter">
-					<button type="submit" class="p-2 align-top text-md font-medium text-white bg-lime-700 border border-lime-700">
-						<span>Filter</span>
-					</button>
-				</div> */}
-				{/* <div class="flex-none" id="sort">
-					<button type="submit" class="p-2 align-top text-md font-medium text-white bg-teal-800 border border-teal-800">
-						<span>Sort</span>
-					</button>
-				</div> */}
 			</div>
 		</div>
 	);

@@ -77,3 +77,29 @@ func CreateOrg(c *gin.Context) {
 		c.JSON(http.StatusOK, fmt.Sprintf("Org successfully created %s", db.Happy()))
 	}
 }
+
+
+// Create org from post form
+func JoinOrg(c *gin.Context) {
+
+	var json struct {
+		uid string `json:"uid" binding: "required"`
+		org_id string `json:"org_id" binding: "required"`
+	}
+
+	err := c.BindJSON(&json)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	commandTag, err := db.Conn.Exec(context.Background(),
+		"INSERT INTO public.user_org_xref (user_id, org_id) VALUES ($1, $2)",
+		json.uid, json.org_id)
+	
+	if err != nil {
+		fmt.Println(commandTag, err)
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to join Org %s", db.Sad()))
+	} else {
+		c.JSON(http.StatusOK, fmt.Sprintf("Org successfully joined %s", db.Happy()))
+	}
+}

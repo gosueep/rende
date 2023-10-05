@@ -54,7 +54,7 @@ func GetLatestEvents(c *gin.Context) {
 	rows, err := db.Conn.Query(context.Background(),
 		`SELECT id, org_id, name, description, date, COALESCE(location, ''), COALESCE(photo_url, ''), is_recurring 
 		FROM public.event 
-		ORDER BY date DESC 
+		ORDER BY date ASC 
 		LIMIT $1`, numEvents)
 	if err != nil {
 		fmt.Println(err)

@@ -1,5 +1,7 @@
 import { Component, createSignal, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router'
+import toast, { Toaster } from 'solid-toast';
+
 import type { EventType, LocationType } from "../event/EventTypes"
 
 type Club = {
@@ -83,12 +85,12 @@ const EventCreator = (props: { clubID?: number }) => {
     console.log(resp)
     console.log(results)
     if(resp.status != 200) {
-      alert(results)
+      toast.error(results)
       return
     }
 
     
-    alert('Event Submitted')
+    toast.success('Event Submitted')
     
     setEventName('');
     setEventDescription('');
@@ -99,6 +101,7 @@ const EventCreator = (props: { clubID?: number }) => {
 
   return (
     <div class="p-8 bg-white rounded-lg shadow-md mt-8">
+      <Toaster position="top-center" />
       <h2 class="text-xl font-bold mb-4">Create Event</h2>
       <form>
         <div class="mb-4">

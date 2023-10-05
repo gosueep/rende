@@ -10,7 +10,7 @@ const LoginPage: Component<{}> = () => {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
-    const resp = await fetch (`/api/login`, {
+    const resp = await fetch(`/api/login`, {
       method: "POST",
       body: JSON.stringify({
         email: email(),
@@ -19,24 +19,21 @@ const LoginPage: Component<{}> = () => {
     })
 
     const results = await resp.json()
-    if(resp.status != 200) {
-      alert(results)
+    if (resp.status != 200) {
+      toast.error(results)
       return
     }
-    // document.cookie = `token=${results.user.access_token}; uid=${results.user.user.id}; SameSite=None; Secure`
+    toast.success('Logged in :)')
     navigate("/")
   }
 
   return (
     <div class="flex justify-center items-center h-screen bg-gray-100">
+      <Toaster position="top-center" />
       <form class="bg-white rounded-lg p-8 shadow-md w-1/5 min-w-fit">
         <h2 class="text-2xl font-medium mb-6">Welcome back!</h2>
         <div>
-				<button onClick={() => toast.success('test toast')}>TEST TOAST</button>
-				<Toaster
-					position="top-center"
-				/>
-			</div>
+        </div>
         <div class="mb-4">
           <label class="block text-gray-700 font-bold mb-2" for="email">
             Email
@@ -62,7 +59,7 @@ const LoginPage: Component<{}> = () => {
           />
         </div>
         <div class='flex flex-col items-center'>
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit" onClick={handleSubmit}>
             Sign-in
           </button>
