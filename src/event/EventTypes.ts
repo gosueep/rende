@@ -7,6 +7,28 @@ export const fetchEvents = async function (num_events:any) {
 export const fetchEvent = async (id:any) => (await fetch (`/api/get_event/${id}`)).json();
 export const fetchLocation = async (id:any) => (await fetch (`/api/get_location/${id}`)).json();
 
+export function dateString(start : Date) {
+    const date_obj = new Date(start)   
+    const day = date_obj.toLocaleTimeString([], { 
+        weekday: "long", hour: "numeric", minute: "2-digit", 
+        timeZoneName: "short"
+    }) as string
+    const date = date_obj.toLocaleDateString([], { month: 'numeric', day: 'numeric'}) as string
+    return `${day} (${date})`
+}
+
+export function timeString(start : Date) {
+    const date_obj = new Date(start)   
+    const day = date_obj.toLocaleTimeString([], { 
+        hour: "numeric", minute: "2-digit",
+    }) as string
+    return day
+}
+
+export function getDay(start : Date) {
+	return new Date(start).toLocaleDateString([], {weekday: "long"}) as string
+}
+
 export type EventType = {
 	id: string,
 	org_id: string,

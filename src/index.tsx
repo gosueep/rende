@@ -6,6 +6,10 @@ import { render } from 'solid-js/web';
 import { UserAuthType } from './user/UserTypes';
 
 const SearchPage = lazy(() => import("./HomePage"))
+const HomePage = lazy(() => import("./WeeklyView"))
+
+const dev = lazy(() => import("./dev"))
+
 const EventPage = lazy(() => import("./event/EventPage"))
 const DashboardPage = lazy(() => import("./user/DashboardPage"))
 const LoginPage = lazy(() => import("./user/LoginPage"))
@@ -31,7 +35,10 @@ const App: Component<{}> = () => {
 	return (
 		<Router>
 			<Routes>
-				<Route path='/' component={SearchPage} />
+				<Route path='/dev' component={dev} />
+
+				<Route path='/' component={HomePage} />
+				<Route path='/search' component={SearchPage} />
 				<Route path='/event/:id' component={EventPage} />
 
 				<Route path='/login' component={LoginPage} />
