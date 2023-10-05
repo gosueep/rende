@@ -1,19 +1,7 @@
 import { useParams } from '@solidjs/router';
 import { Component, createResource, createSignal, For, onMount } from 'solid-js';
 
-import { EventType, fetchLocation, LocationType, fetchEvent } from "./EventTypes"
-
-
-//  TODO ADJUST TIMEZONE BASED ON LOCATION
-function dateString(start: Date) {
-    const date_obj = new Date(start)
-    const day = date_obj.toLocaleTimeString([], {
-        weekday: "long", hour: "numeric", minute: "2-digit",
-        timeZoneName: "short"
-    }) as string
-    const date = date_obj.toLocaleDateString([], { month: 'numeric', day: 'numeric' }) as string
-    return `${day} (${date})`
-}
+import { EventType, fetchLocation, LocationType, fetchEvent, dateString } from "./EventTypes"
 
 
 const EventDisplay = (props: any) => {
@@ -47,11 +35,11 @@ const EventDisplay = (props: any) => {
                     <p class="text-sm mb-2" id='description'>{event.description}</p>
                 </div>
             </div>
-            <div class="px-6 pt-4 pb-2">
+            {/* <div class="px-6 pt-4 pb-2">
                 <For each={["Mines"]}>{(tag, i) =>
                     <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 mr-2 mb-2">{tag}</span>
                 }</For>
-            </div>
+            </div> */}
 
         </div>
     )
